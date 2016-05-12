@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="con" path="com.google.appengine.eclipse.core.GAE_CONTAINER"/>
+	<classpathentry kind="lib" path="lib/objectify-5.1.12.jar"/>
+	<classpathentry kind="lib" path="lib/guava-19.0.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
+	<classpathentry kind="lib" path="C:/Program Files/eclipse-MARS/plugins/com.google.appengine.eclipse.sdkbundle_1.9.34/appengine-java-sdk-1.9.34/lib/testing/appengine-testing.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/eclipse-MARS/plugins/com.google.appengine.eclipse.sdkbundle_1.9.34/appengine-java-sdk-1.9.34/lib/impl/appengine-api.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/eclipse-MARS/plugins/com.google.appengine.eclipse.sdkbundle_1.9.34/appengine-java-sdk-1.9.34/lib/impl/appengine-api-labs.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/eclipse-MARS/plugins/com.google.appengine.eclipse.sdkbundle_1.9.34/appengine-java-sdk-1.9.34/lib/impl/appengine-api-stubs.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/eclipse-MARS/plugins/com.google.appengine.eclipse.sdkbundle_1.9.34/appengine-java-sdk-1.9.34/lib/appengine-tools-api.jar"/>
+	<classpathentry kind="output" path="war/WEB-INF/classes"/>
+</classpath>
