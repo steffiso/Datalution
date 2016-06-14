@@ -1,11 +1,4 @@
-<!-- Indices written at Tue, 14 Jun 2016 21:38:39 CEST -->
+<!-- Indices written at Tue, 14 Jun 2016 21:56:24 CEST -->
 
-<datastore-indexes>
+<datastore-indexes/>
 
-    <!-- Used 1 time in query history -->
-    <datastore-index kind="Schema" ancestor="false" source="auto">
-        <property name="kind" direction="asc"/>
-        <property name="schemaversion" direction="desc"/>
-    </datastore-index>
-
-</datastore-indexes>
