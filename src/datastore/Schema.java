@@ -13,12 +13,9 @@ public class Schema {
 	
 	@Id
 	public Long id;
-	@Index
 	private int schemaversion;
-	@Index
 	private String kind;
 	private String attributes;
-	@Index
 	private Date timestamp;
 	
 	private ArrayList<String> attributesList;

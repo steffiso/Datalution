@@ -17,7 +17,10 @@ import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.FetchOptions;
+import com.google.appengine.api.datastore.Key;
+import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.Query;
+import com.google.appengine.api.datastore.Transaction;
 import com.google.appengine.api.datastore.Query.SortDirection;
 
 import datalog.DatalogRulesGenerator;
@@ -30,6 +33,8 @@ public class AdminServlet extends HttpServlet {
 	
 	List<Rule> rules;
 	List<Schema> schema;
+	String command;
+	Date timestamp;
 	
 		public void doGet(HttpServletRequest req,
 	             HttpServletResponse resp) throws IOException, ServletException{
@@ -41,9 +46,14 @@ public class AdminServlet extends HttpServlet {
 		 }
 		
 		public void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException{			
+
 			String command = req.getParameter("command");
 			
-			Database db = new Database();
+			resp.sendRedirect("/admin");
+
+			DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
+			Database db = new Database(ds);
+			
 			DatalogRulesGenerator drg = new DatalogRulesGenerator(db);
 			String rules = "";
 			try {
@@ -61,10 +71,11 @@ public class AdminServlet extends HttpServlet {
 			if (!rules.equals("")) {
 				ArrayList<String> rulesList = new ArrayList<String>(Arrays.asList(rules.split("\n")));
 				for (String s: rulesList){
-					Rule rule = new Rule();
-					rule.setValue(s);
-					rule.setTimestamp(new Date());
-					ofy().save().entity(rule);
+					
+					Entity rule = new Entity("Rule");
+					rule.setProperty("value", s);
+					rule.setProperty("timestamp", new Date());
+					ds.put(rule);
 				}
 				resp.getWriter().println(rules);
 			}

@@ -12,7 +12,6 @@ public class Rule {
 	@Id
 	public Long id;
 	private String value;
-	@Index
 	private Date timestamp;
 	public String getValue() {
 		return value;

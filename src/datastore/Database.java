@@ -2,13 +2,27 @@ package datastore;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+
+import com.google.appengine.api.datastore.DatastoreService;
+import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.FetchOptions;
+import com.google.appengine.api.datastore.Key;
+import com.google.appengine.api.datastore.KeyFactory;
+import com.google.appengine.api.datastore.PreparedQuery;
+import com.google.appengine.api.datastore.Query;
+import com.google.appengine.api.datastore.Query.Filter;
+import com.google.appengine.api.datastore.Query.FilterOperator;
+import com.google.appengine.api.datastore.Transaction;
 
 import static com.googlecode.objectify.ObjectifyService.ofy;
 
 public class Database {
 
-	public Database() {
-		OfyService.ofy();
+	DatastoreService ds;
+	public Database(DatastoreService ds) {
+		//OfyService.ofy();
+		this.ds = ds;
 	}
 
 	// return all database entries as edb facts in one string
@@ -50,7 +64,17 @@ public class Database {
 	// returns the latest schema for input kind
 	// output: "?name,?score,?points"
 	public Schema getLatestSchema(String kind){
-		Schema latestSchema =  ofy().load().type(Schema.class).filter("kind", kind).order("-schemaversion").first().now();
+		Query q = new Query ("Version").setAncestor(KeyFactory.createKey("Schema",kind));
+		q.addSort("timestamp", Query.SortDirection.DESCENDING);
+		
+		List<Entity> schemaList = ds.prepare(q).asList(FetchOptions.Builder.withDefaults());
+		Entity schema = schemaList.get(0);
+		Schema latestSchema = new Schema();
+		latestSchema.setAttributesString(schema.getProperty("value").toString());
+		latestSchema.setKind(schema.getProperty("kind").toString());
+		latestSchema.setSchemaversion(Integer.parseInt(schema.getProperty("version").toString()));
+		latestSchema.setTimestamp((Date) schema.getProperty("timestamp"));
+		//Schema latestSchema =  ofy().load().type(Schema.class).filter("kind", kind).order("-schemaversion").first().now();
 		return latestSchema;
 	}
 
@@ -70,15 +94,24 @@ public class Database {
 			newSchema = newSchema + s + "," ;
 		}
 		newSchema = newSchema.substring(0, newSchema.length()-1);
-		int newVersion = getLatestSchemaVersion(kind) + 1;
-		Schema schema = new Schema();
-		schema.setAttributesString(newSchema);
-		schema.setKind(kind);
-		schema.setSchemaversion(newVersion);
-		Date d = new Date();
-		schema.setTimestamp(d);
-		
-		ofy().save().entity(schema).now();
+		long newVersion = getLatestSchemaVersion(kind) + 1;
+		Key entityKey = new KeyFactory.Builder("Schema", kind).addChild("Version", newVersion).getKey();
+		Transaction txn = ds.beginTransaction();
+		Entity schema = new Entity(entityKey);
+		schema.setProperty("kind", kind);
+		schema.setProperty("version", newVersion);
+		schema.setProperty("value", newSchema);
+		schema.setProperty("timestamp", new Date());
+		ds.put(txn, schema);
+		txn.commit();
+//		Schema schema = new Schema();
+//		schema.setAttributesString(newSchema);
+//		schema.setKind(kind);
+//		schema.setSchemaversion(newVersion);
+//		Date d = new Date();
+//		schema.setTimestamp(d);
+//		
+//		ofy().save().entity(schema).now();
 	}
 
 
