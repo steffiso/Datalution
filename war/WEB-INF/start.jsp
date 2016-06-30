@@ -16,8 +16,7 @@ span.tab {
 	<form method="get">
 		<p>Show Character</p>
 		<p>
-			<span class="tab">User:</span><input type="text" name="username">
-			<input type="hidden" name="insert" value="true">
+			<span class="tab">UserID:</span><input type="text" name="username">
 		</p>
 		<p>
 			<input type="submit" value="Show">
@@ -31,19 +30,11 @@ span.tab {
 					<form method="post">
 
 						<p>Create new Character</p>
-						<p>Please fill out the form and click "Create"</p>
+						<p>Please fill "put" command and click "Create"</p>
 
 						<p>
-							<span class="tab">Name:</span><input type="text" name="name">
-						</p>
-						<p>
-							<span class="tab">Character class:</span> <select id="character"
-								name="character">
-								<option value="hobbit">hobbit</option>
-								<option value="dwarf">dwarf</option>
-								<option value="mage">mage</option>
-								<option value="elf">elf</option>
-							</select>
+							<input type="hidden" name="newPlayer" value="true"> <span
+								class="tab">Put:</span><input type="text" name="name">
 						</p>
 						<p>
 							<input type="submit" value="Create">
@@ -53,10 +44,22 @@ span.tab {
 				<c:otherwise>
 					<p>Show Character</p>
 					<p>
-						<span class="tab">Values:</span><input type="text" name="name" size="60"
-							value="${values}">
+						<span class="tab">Values:</span><input type="text" name="value"
+							size="60" value="${values}">
 					</p>
+					<form method="post">
 
+						<p>Change Character</p>
+						<p>Please fill "put" command and click "Change"</p>
+
+						<p>
+							<input type="hidden" name="newPlayer" value="false"> <span
+								class="tab">Put:</span><input type="text" name="name" size="60">
+						</p>
+						<p>
+							<input type="submit" value="Change">
+						</p>
+					</form>
 				</c:otherwise>
 			</c:choose>
 		</c:when>

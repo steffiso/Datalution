@@ -78,10 +78,10 @@ public class DatalogRulesGenerator {
 	}
 
 	// returns all edb facts from database in one json-like string
-	public String getJsonFacts(){
-		String edbFacts = "";
-		edbFacts = db.getJson();
-		return edbFacts;
-
-	}
+//	public String getJsonFacts(){
+//		String edbFacts = "";
+//		edbFacts = db.getJson();
+//		return edbFacts;
+//
+//	}
 }

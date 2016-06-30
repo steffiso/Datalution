@@ -1,7 +1,9 @@
 package datastore;
 
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.InputMismatchException;
 import java.util.List;
 
 import com.google.appengine.api.datastore.DatastoreService;
@@ -15,13 +17,20 @@ import com.google.appengine.api.datastore.Query.Filter;
 import com.google.appengine.api.datastore.Query.FilterOperator;
 import com.google.appengine.api.datastore.Transaction;
 
+import parserPutToDatalog.ParseException;
+import parserPutToDatalog.ParserForPut;
+
 import static com.googlecode.objectify.ObjectifyService.ofy;
 
 public class Database {
 
 	DatastoreService ds;
+	
+	public Database(){
+		OfyService.ofy();
+	}
 	public Database(DatastoreService ds) {
-		//OfyService.ofy();
+		OfyService.ofy();
 		this.ds = ds;
 	}
 
@@ -33,14 +42,10 @@ public class Database {
 		return edb;
 	}
 
-	// return all database entries from database in a json-like string
-	// e.g. "Player1{"id":1,"name":"Lisa","score":20,"ts":1}.\n" +
-	// "Player1{"id":2,"name":"Bart","score":20,"ts":2}.\n" +
-	// "Player1{"id":3,"name":"Homer","score":20,"ts":3}."
-	public String getJson() {
-		String edb = "";
-
-		return edb;
+	// return all rules
+	public ArrayList<Rule> getRules() {
+		ArrayList<Rule> rules = new ArrayList<Rule>(ofy().load().type(Rule.class).order("timestamp").list());
+		return rules;
 	}
 
 	// return the schema for kind and version
@@ -81,8 +86,15 @@ public class Database {
 	// write the datalogFact to datastore
 	// input: "Player2(4,'Lisa',40)"
 	// timestamp will be added automatically
-	public void putToDatabase(String datalogFact){
-
+	public void putToDatabase(String datalogFact, String value){ 
+		Entity entity = null;
+		try {
+			entity = new ParserForPut(new StringReader(datalogFact)).getEntity(value);
+		} catch (InputMismatchException | ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		ds.put(entity);
 
 	}
 	

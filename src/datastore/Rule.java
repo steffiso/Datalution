@@ -13,6 +13,7 @@ public class Rule {
 	public Long id;
 	private String value;
 	private Date timestamp;
+	private boolean isHead;
 	public String getValue() {
 		return value;
 	}
@@ -24,6 +25,12 @@ public class Rule {
 	}
 	public void setTimestamp(Date timestamp) {
 		this.timestamp = timestamp;
+	}
+	public boolean isHead() {
+		return isHead;
+	}
+	public void setHead(boolean isHead) {
+		this.isHead = isHead;
 	}
 	
 }
