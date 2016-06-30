@@ -40,6 +40,7 @@ public class TopDownExecution extends MigrationExecution {
 	private int numberOfPuts = 0; // number of db writes
 	private int numberOfMGView = 0; // number of magic set views
 
+	private Database db;
 	public int getNumberOfPuts() {
 		return numberOfPuts;
 	}
@@ -51,6 +52,7 @@ public class TopDownExecution extends MigrationExecution {
 	// set edb facts, rules
 	public TopDownExecution(ArrayList<Fact> facts, ArrayList<Rule> rules) {
 		super(facts, rules);
+		db = new Database();
 	}
 
 	// set edb facts, rules, goal and unificationMap
@@ -59,6 +61,7 @@ public class TopDownExecution extends MigrationExecution {
 		super(facts, rules);
 		this.goal = goal;
 		this.unificationMap = unificationMap;
+		db = new Database();
 	}
 
 	// Test for top down approach for only one rule
@@ -499,15 +502,17 @@ public class TopDownExecution extends MigrationExecution {
 		// test if entity exists in datastore
 		{
 			if (!predicate.getScheme().get(0).startsWith("?")) {
-				DatastoreService ds = DatastoreServiceFactory
-						.getDatastoreService();
-
-				Query playerQuery = new Query(kind).setAncestor(
-						KeyFactory.createKey(kind.replaceAll("\\d", ""),
-								predicate.getScheme().get(0))).addSort("ts",
-						SortDirection.DESCENDING);
-				List<Entity> results = ds.prepare(playerQuery).asList(
-						FetchOptions.Builder.withDefaults().limit(1));
+//				DatastoreService ds = DatastoreServiceFactory
+//						.getDatastoreService();
+//
+//				Query playerQuery = new Query(kind).setAncestor(
+//						KeyFactory.createKey(kind.replaceAll("\\d", ""),
+//								predicate.getScheme().get(0))).addSort("ts",
+//						SortDirection.DESCENDING);
+//				List<Entity> results = ds.prepare(playerQuery).asList(
+//						FetchOptions.Builder.withDefaults().limit(1));
+				String id = predicate.getScheme().get(0);
+				List<Entity> results = db.getLatestEntity(kind, id);
 				if (!results.isEmpty()) {
 
 					//if (results.get(0).getProperties().size() == number) {
