@@ -23,6 +23,17 @@ import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Transaction;
 import com.google.appengine.api.datastore.Query.SortDirection;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
+import javax.cache.Cache;
+import javax.cache.CacheException;
+import javax.cache.CacheFactory;
+import javax.cache.CacheManager;
+import com.google.appengine.api.memcache.jsr107cache.GCacheFactory;
+
+
 import datalog.DatalogRulesGenerator;
 import parserQueryToDatalogToJava.ParseException;
 
@@ -39,7 +50,7 @@ public class AdminServlet extends HttpServlet {
 		public void doGet(HttpServletRequest req,
 	             HttpServletResponse resp) throws IOException, ServletException{
 			
-//			resp.setContentType("text/plain");		    
+			resp.setContentType("text/plain");		    
 //			resp.getWriter().println(d.toString());
 			RequestDispatcher jsp = req.getRequestDispatcher("/WEB-INF/admin.jsp");
 		    jsp.forward(req, resp);
@@ -55,29 +66,31 @@ public class AdminServlet extends HttpServlet {
 			Database db = new Database(ds);
 			
 			DatalogRulesGenerator drg = new DatalogRulesGenerator(db);
-			String rules = "";
-			try {
-				rules = drg.getRules(command);
-			} catch (InputMismatchException e) {
-				// TODO Auto-generated catch block
-				resp.getWriter().println(e.getMessage());
-			} catch (ParseException e) {
-				// TODO Auto-generated catch block
-				resp.getWriter().println(e.getMessage());
-			} catch (parserRuletoJava.ParseException e) {
-				// TODO Auto-generated catch block
-				resp.getWriter().println(e.getMessage());
+			if (command.equals("start")) {
+				db.addStartEntities();
 			}
-			if (!rules.equals("")) {
-				ArrayList<String> rulesList = new ArrayList<String>(Arrays.asList(rules.split("\n")));
-				for (String s: rulesList){
-					
-					Entity rule = new Entity("Rule");
-					rule.setProperty("value", s);
-					rule.setProperty("timestamp", new Date());
-					ds.put(rule);
+			else {
+				String rules = "";
+				try {
+					rules = drg.getRules(command);
+				} catch (InputMismatchException e) {
+					// TODO Auto-generated catch block
+					resp.getWriter().println(e.getMessage());
+				} catch (ParseException e) {
+					// TODO Auto-generated catch block
+					resp.getWriter().println(e.getMessage());
+				} catch (parserRuletoJava.ParseException e) {
+					// TODO Auto-generated catch block
+					resp.getWriter().println(e.getMessage());
 				}
-				resp.getWriter().println(rules);
+				if (!rules.equals("")) {
+					try {
+						db.addRules(rules);
+					} catch (ServletException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
 			}
 		}
 		

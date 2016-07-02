@@ -512,8 +512,11 @@ public class TopDownExecution extends MigrationExecution {
 //				List<Entity> results = ds.prepare(playerQuery).asList(
 //						FetchOptions.Builder.withDefaults().limit(1));
 				String id = predicate.getScheme().get(0);
-				List<Entity> results = db.getLatestEntity(kind, id);
-				if (!results.isEmpty()) {
+				Entity results = null;
+				if (!(kind.startsWith("latest") || kind.startsWith("legacy"))){
+				results = db.getLatestEntity(kind, id);
+				}
+				if (results != null) {
 
 					//if (results.get(0).getProperties().size() == number) {
 						found = true;
@@ -523,21 +526,20 @@ public class TopDownExecution extends MigrationExecution {
 							if (!wert.startsWith("?"))
 								valueNew.add(wert);
 							else {
-								if(results.get(0)
+								if(results
 										.getProperty(wert.substring(1))==null)
 									valueNew.add("null");
-								else if (results.get(0)
+								else if (results
 										.getProperty(wert.substring(1))
 										.getClass().equals(String.class))
 									valueNew.add("'"
 											+ results
-													.get(0)
 													.getProperty(
 															wert.substring(1))
 													.toString() + "'");
 
 								else
-									valueNew.add(results.get(0)
+									valueNew.add(results
 											.getProperty(wert.substring(1))
 											.toString());
 							}

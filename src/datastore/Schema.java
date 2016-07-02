@@ -13,12 +13,10 @@ public class Schema {
 	
 	@Id
 	public Long id;
-	private int schemaversion;
+	private int version;
 	private String kind;
 	private String attributes;
-	private Date timestamp;
-	
-	private ArrayList<String> attributesList;
+	private int ts;
 	
 	public String getKind() {
 		return kind;
@@ -38,20 +36,20 @@ public class Schema {
 		return list;
 	}
 	
-	public void setAttributes(ArrayList<String> attributes) {
-		this.attributesList = attributes;
-	}
+//	public void setAttributes(ArrayList<String> attributes) {
+//		this.attributesList = attributes;
+//	}
 	
-	public Date getTimestamp() {
-		return timestamp;
+	public int getTimestamp() {
+		return ts;
 	}
-	public void setTimestamp(Date timestamp) {
-		this.timestamp = timestamp;
+	public void setTimestamp(int timestamp) {
+		this.ts = timestamp;
 	}
-	public int getSchemaversion() {
-		return schemaversion;
+	public int getVersion() {
+		return version;
 	}
-	public void setSchemaversion(int schemaversion) {
-		this.schemaversion = schemaversion;
+	public void setVersion(int version) {
+		this.version = version;
 	}
 }

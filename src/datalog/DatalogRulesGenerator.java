@@ -72,7 +72,7 @@ public class DatalogRulesGenerator {
 	// returns all edb facts from database in one string
 	public String getEDBFacts(){
 		String edbFacts = "";
-		edbFacts = db.getEDB();
+//		edbFacts = db.getEDB();
 		return edbFacts;
 
 	}

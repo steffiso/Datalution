@@ -1,5 +1,6 @@
 package datastore;
 
+import java.io.Serializable;
 import java.util.Date;
 
 import com.googlecode.objectify.annotation.Entity;
@@ -7,7 +8,7 @@ import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
 
 @Entity
-public class Rule {
+public class Rule implements Serializable {
 	
 	@Id
 	public Long id;

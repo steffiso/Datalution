@@ -52,13 +52,24 @@ public class DatalutionServlet extends HttpServlet {
 		}
 		if (username != null) {
 
-			executeGetCommand("get Player.id="+username);
 			Query playerQuery = new Query("Player"+ db.getLatestSchemaVersion("Player")).setAncestor(
 					KeyFactory.createKey("Player", username)).addSort("ts",
 					SortDirection.DESCENDING);
 			List<Entity> results = ds.prepare(playerQuery).asList(
 					FetchOptions.Builder.withDefaults().limit(1));
-			if (!results.isEmpty()) {
+			
+			if (results.isEmpty()) {
+				// if no database entry exist => 
+				// top down execution + retry querying
+				executeGetCommand("get Player.id="+username);
+				playerQuery = new Query("Player"+ db.getLatestSchemaVersion("Player")).setAncestor(
+						KeyFactory.createKey("Player", username)).addSort("ts",
+						SortDirection.DESCENDING);
+				results = ds.prepare(playerQuery).asList(
+						FetchOptions.Builder.withDefaults().limit(1));				
+			}
+			
+			if (!results.isEmpty()){
 				userPlayer = results.get(0);
 				Schema latestSchema =db.getLatestSchema("Player");
 				String values = "[";
@@ -68,6 +79,8 @@ public class DatalutionServlet extends HttpServlet {
 				values = values + "ts=" + userPlayer.getProperty("ts") + "]";
 				req.setAttribute("values", values);
 			}
+				
+			
 			req.setAttribute("username", username);
 		}
 		// saveCurrentSchema("Player", "?id,?name,?character,?score");
@@ -174,15 +187,15 @@ public class DatalutionServlet extends HttpServlet {
 		System.out.println(answerString);
 	}
 
-	public void saveCurrentSchema(String kind, String newSchema) {
-		int newVersion = 1;
-		Schema schema = new Schema();
-		schema.setAttributesString(newSchema);
-		schema.setKind(kind);
-		schema.setSchemaversion(newVersion);
-		Date d = new Date();
-		schema.setTimestamp(d);
-		OfyService.ofy();
-		ofy().save().entity(schema).now();
-	}
+//	public void saveCurrentSchema(String kind, String newSchema) {
+//		int newVersion = 1;
+//		Schema schema = new Schema();
+//		schema.setAttributesString(newSchema);
+//		schema.setKind(kind);
+//		schema.setSchemaversion(newVersion);
+//		Date d = new Date();
+//		schema.setTimestamp(d);
+//		OfyService.ofy();
+//		ofy().save().entity(schema).now();
+//	}
 }

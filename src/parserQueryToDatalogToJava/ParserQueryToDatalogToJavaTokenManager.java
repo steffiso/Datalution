@@ -8,7 +8,6 @@ import datalog.Rule;
 import parserRuletoJava.ParserRuleToJava;
 import java.util.InputMismatchException;
 import java.io.IOException;
-import java.util.Date;
 
 /** Token Manager. */
 public class ParserQueryToDatalogToJavaTokenManager implements ParserQueryToDatalogToJavaConstants

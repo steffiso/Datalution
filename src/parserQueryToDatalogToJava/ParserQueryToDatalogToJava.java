@@ -8,7 +8,6 @@ import datalog.Rule;
 import parserRuletoJava.ParserRuleToJava;
 import java.util.InputMismatchException;
 import java.io.IOException;
-import java.util.Date;
 
 public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaConstants {
   private String kindStr;
@@ -151,9 +150,9 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
 
   private static String getTimestamp() throws IOException
   {
-    Date d = new Date();
-    String timestamp = "'" + d.toString() + "'";
-    return timestamp;
+    //int time = db.getLastTimestamp();
+    // return time + 1;
+    return "?ts";
   }
 
   public ArrayList < String > getSchema(String kind, int schemaNumber) throws InputMismatchException, IOException

@@ -22,7 +22,7 @@ public class ParserForPut implements ParserForPutConstants {
 
   private static boolean hasTS = false;
 
-  private static Database db;
+  private static Database db = new Database();
 
   private static void getSchema(String kind, int number) throws InputMismatchException
   {
@@ -36,7 +36,7 @@ public class ParserForPut implements ParserForPutConstants {
     {
       attributes = schema.getAttributes();
       length = attributes.size();
-      schemaVersion = schema.getSchemaversion();
+      schemaVersion = schema.getVersion();
     }
   }
 
@@ -60,7 +60,8 @@ public class ParserForPut implements ParserForPutConstants {
   Token schemaToken = null;
   Entity value = null;
   boolean testOverflow = false;
-  Date d = new Date();
+  int newTS = 0;
+  counter = 0;
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case put:
       jj_consume_token(put);
@@ -83,12 +84,19 @@ public class ParserForPut implements ParserForPutConstants {
     {
       schemaVersion = Integer.parseInt(schemaToken.toString());
       getSchema(kind.toString(), schemaVersion);
+      ts = db.getLatestTimestamp(kind.toString(), username);
+      newTS = ts + 1;
     }
     else if (schemaToken != null && testOverflow == true)
     {
       {if (true) throw new InputMismatchException("no numbers for value of kind allowed");}
     }
-    else getSchema(kind.toString(), 0);
+    else
+    {
+      getSchema(kind.toString(), 0);
+      ts = db.getLatestTimestamp(kind.toString(), username);
+      newTS = ts + 1;
+    }
     if (attributes == null)
     {
       {if (true) throw new InputMismatchException("no info for schema of " + kind.toString() + " found");}
@@ -100,7 +108,7 @@ public class ParserForPut implements ParserForPutConstants {
     case number:
       value = listOfValues(new Entity
             (
-              kind.toString()+ schemaVersion, username+ d.toString(), KeyFactory.createKey
+              kind.toString()+ schemaVersion, username+ Integer.toString(newTS), KeyFactory.createKey
               (
                 kind.toString(), username
               )
@@ -120,7 +128,7 @@ public class ParserForPut implements ParserForPutConstants {
       ;
     }
     if (value == null) {if (true) throw new InputMismatchException("no attributes for " + kind.toString());}
-    value.setProperty("ts", d);
+    value.setProperty("ts", Integer.toString(newTS));
     {if (true) return value;}
     throw new Error("Missing return statement in function");
   }
@@ -164,17 +172,17 @@ public class ParserForPut implements ParserForPutConstants {
       valueOne = attributename.substring(1, attributename.length());
       counter++;
     }
-    /* else if (counter == length)
+    else if (counter == length)
     {
-      if (!(valueOfToken.kind == string))
-      {
-        isTS = true;
-        hasTS = true;
-        ts = Integer.parseInt(valueOfToken.toString());
-      }
+//      if (!(valueOfToken.kind == string))
+//      {
+//        isTS = true;
+//        hasTS = true;
+//        ts = Integer.parseInt(valueOfToken.toString());
+//      }
       counter++;
     }
-    */
+
     else
     {
       counter++;
@@ -195,19 +203,13 @@ public class ParserForPut implements ParserForPutConstants {
     }
     String nullValues = "";
     if (valueOfOtherToken != null)
-    {
-      /*if (counter < length)
-      {
-        for (int i = counter; i < length; i++)
-        {
-          String attributename = attributes.get(i);
-          name = null;
-          valueOfOtherToken.setProperty(attributename, null);
-        }
-      }*/
+    { /*if (counter < length) { for (int i = counter; i < length; i++) { String attributename = attributes.get(i); name = null; valueOfOtherToken.setProperty(attributename, null); } }*/
       value = valueOfOtherToken;
       if (name != null) value.setProperty(valueOne, name);
       else if (nullvalue) value.setProperty(valueOne, null);
+      else if (valueOne == "")
+      {
+      }
       else value.setProperty(valueOne, numbers);
       {if (true) return value;}
     }
@@ -215,6 +217,9 @@ public class ParserForPut implements ParserForPutConstants {
     {
       if (name != null) value.setProperty(valueOne, name);
       else if (nullvalue) value.setProperty(valueOne, null);
+      else if (valueOne == "")
+      {
+      }
       else value.setProperty(valueOne, numbers);
       {if (true) return value;}
     }
