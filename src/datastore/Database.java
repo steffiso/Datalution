@@ -112,7 +112,7 @@ public class Database {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+		if(rulesEntity!=null){
 		String rules = (String) rulesEntity.getProperty("value");
         ArrayList<Rule> rulesList = new ArrayList<Rule>();
         if (rules != null){
@@ -130,8 +130,9 @@ public class Database {
              	rulesList.add(r);
              }
         }
-       
-        return rulesList;		
+		
+        return rulesList;		}
+		else return null;
 	}
 	
 	public void addRules(String newRules) throws ServletException{

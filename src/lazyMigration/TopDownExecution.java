@@ -7,14 +7,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import com.google.appengine.api.datastore.DatastoreService;
-import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
-import com.google.appengine.api.datastore.FetchOptions;
-import com.google.appengine.api.datastore.KeyFactory;
-import com.google.appengine.api.datastore.Query;
-import com.google.appengine.api.datastore.Query.SortDirection;
-
 import parserPutToDatalog.ParseException;
 import datastore.Database;
 import datalog.Condition;
@@ -41,6 +34,7 @@ public class TopDownExecution extends MigrationExecution {
 	private int numberOfMGView = 0; // number of magic set views
 
 	private Database db;
+
 	public int getNumberOfPuts() {
 		return numberOfPuts;
 	}
@@ -502,106 +496,107 @@ public class TopDownExecution extends MigrationExecution {
 		// test if entity exists in datastore
 		{
 			if (!predicate.getScheme().get(0).startsWith("?")) {
-//				DatastoreService ds = DatastoreServiceFactory
-//						.getDatastoreService();
-//
-//				Query playerQuery = new Query(kind).setAncestor(
-//						KeyFactory.createKey(kind.replaceAll("\\d", ""),
-//								predicate.getScheme().get(0))).addSort("ts",
-//						SortDirection.DESCENDING);
-//				List<Entity> results = ds.prepare(playerQuery).asList(
-//						FetchOptions.Builder.withDefaults().limit(1));
+				// DatastoreService ds = DatastoreServiceFactory
+				// .getDatastoreService();
+				//
+				// Query playerQuery = new Query(kind).setAncestor(
+				// KeyFactory.createKey(kind.replaceAll("\\d", ""),
+				// predicate.getScheme().get(0))).addSort("ts",
+				// SortDirection.DESCENDING);
+				// List<Entity> results = ds.prepare(playerQuery).asList(
+				// FetchOptions.Builder.withDefaults().limit(1));
 				String id = predicate.getScheme().get(0);
 				Entity results = null;
-				if (!(kind.startsWith("latest") || kind.startsWith("legacy"))){
-				results = db.getLatestEntity(kind, id);
+				if (!(kind.startsWith("latest") || kind.startsWith("legacy"))) {
+					results = db.getLatestEntity(kind, id);
 				}
 				if (results != null) {
 
-					//if (results.get(0).getProperties().size() == number) {
-						found = true;
-						boolean set = true;
-						ArrayList<String> valueNew = new ArrayList<String>();
-						for (String wert : predicate.getScheme()) {
-							if (!wert.startsWith("?"))
-								valueNew.add(wert);
-							else {
-								if(results
-										.getProperty(wert.substring(1))==null)
+					// if (results.get(0).getProperties().size() == number) {
+					found = true;
+					boolean set = true;
+					ArrayList<String> valueNew = new ArrayList<String>();
+					for (String wert : predicate.getScheme()) {
+						if (!wert.startsWith("?"))
+							valueNew.add(wert);
+						else {
+							if (wert.equals("?id2")) {
+
+								if (results.getProperty("pid") == null)
+									valueNew.add("null");
+								else if (results.getProperty("pid").getClass()
+										.equals(String.class))
+									valueNew.add("'"
+											+ results.getProperty(("pid"))
+													.toString() + "'");
+
+								else
+									valueNew.add(results.getProperty(("pid"))
+											.toString());
+
+							} else {
+								if (results.getProperty(wert.substring(1)
+										.replaceAll("\\d", "")) == null)
 									valueNew.add("null");
 								else if (results
-										.getProperty(wert.substring(1))
-										.getClass().equals(String.class))
+
+										.getProperty(
+												wert.substring(1).replaceAll(
+														"\\d", "")).getClass()
+										.equals(String.class))
 									valueNew.add("'"
 											+ results
-													.getProperty(
-															wert.substring(1))
+
+											.getProperty(
+													wert.substring(1)
+															.replaceAll("\\d",
+																	""))
 													.toString() + "'");
 
 								else
 									valueNew.add(results
-											.getProperty(wert.substring(1))
-											.toString());
+
+									.getProperty(
+											wert.substring(1).replaceAll("\\d",
+													"")).toString());
 							}
 						}
-						Fact v = new Fact(kind, valueNew);
-						if (!factExists(facts, v))
-							facts.add(v);
-						if (set)
-							set = testIfMagicSetExists(v);
-						if (set)
-							values.add(valueNew);
-					//}
+					}
+					Fact v = new Fact(kind, valueNew);
+					if (!factExists(facts, v))
+						facts.add(v);
+					if (set)
+						set = testIfMagicSetExists(v);
+					if (set)
+						values.add(valueNew);
+					// }
 				}
 			}
 
-	/*		else {
-				DatastoreService ds = DatastoreServiceFactory
-						.getDatastoreService();
-
-				Query playerQuery = new Query(kind).setAncestor(
-						KeyFactory.createKey(kind.replaceAll("\\d", ""),
-								unificationMap.get(0).get("value"))).addSort(
-						"ts", SortDirection.DESCENDING);
-				List<Entity> results = ds.prepare(playerQuery).asList(
-						FetchOptions.Builder.withDefaults());
-				if (!results.isEmpty()) {
-					for (Entity result : results) {
-						if (result.getProperties().size() == number) {
-							found = true;
-							boolean set = true;
-							ArrayList<String> valueNew = new ArrayList<String>();
-							for (String wert : predicate.getScheme()) {
-								if (!wert.startsWith("?"))
-									valueNew.add(wert);
-								else {
-									if (results.get(0)
-											.getProperty(wert.substring(1))
-											.getClass().equals(String.class))
-										valueNew.add("'"
-												+ results
-														.get(0)
-														.getProperty(
-																wert.substring(1))
-														.toString() + "'");
-
-									else
-										valueNew.add(results.get(0)
-												.getProperty(wert.substring(1))
-												.toString());
-								}
-							}
-							Fact v = new Fact(kind, valueNew);
-							if (!factExists(facts, v))
-								facts.add(v);
-							if (set)
-								set = testIfMagicSetExists(v);
-							if (set)
-								values.add(valueNew);
-						}
-					}
-				}
-			}*/
+			/*
+			 * else { DatastoreService ds = DatastoreServiceFactory
+			 * .getDatastoreService();
+			 * 
+			 * Query playerQuery = new Query(kind).setAncestor(
+			 * KeyFactory.createKey(kind.replaceAll("\\d", ""),
+			 * unificationMap.get(0).get("value"))).addSort( "ts",
+			 * SortDirection.DESCENDING); List<Entity> results =
+			 * ds.prepare(playerQuery).asList(
+			 * FetchOptions.Builder.withDefaults()); if (!results.isEmpty()) {
+			 * for (Entity result : results) { if (result.getProperties().size()
+			 * == number) { found = true; boolean set = true; ArrayList<String>
+			 * valueNew = new ArrayList<String>(); for (String wert :
+			 * predicate.getScheme()) { if (!wert.startsWith("?"))
+			 * valueNew.add(wert); else { if (results.get(0)
+			 * .getProperty(wert.substring(1)) .getClass().equals(String.class))
+			 * valueNew.add("'" + results .get(0) .getProperty(
+			 * wert.substring(1)) .toString() + "'");
+			 * 
+			 * else valueNew.add(results.get(0) .getProperty(wert.substring(1))
+			 * .toString()); } } Fact v = new Fact(kind, valueNew); if
+			 * (!factExists(facts, v)) facts.add(v); if (set) set =
+			 * testIfMagicSetExists(v); if (set) values.add(valueNew); } } } }
+			 */
 		}
 		predicate.setRelation(values);
 		if (found && !values.isEmpty()) {
@@ -677,8 +672,14 @@ public class TopDownExecution extends MigrationExecution {
 							}
 						magicCondition.setAlreadyFoundResults(true);
 						magicCondition.setNameOfMagicView(newViewName);
-						setNewMagicPredicateToCorrespondingRules(
-								magicCondition, newViewName);
+						// setNewMagicPredicateToCorrespondingRules(
+						// magicCondition, newViewName);
+						if (!values.isEmpty())
+							setNewMagicIdToCorrespondingRules(
+									magicCondition,
+									values.get(0).get(
+											magicCondition.getLeft()
+													.getPositionId()));
 						numberOfMGView++;
 					}
 
@@ -687,6 +688,23 @@ public class TopDownExecution extends MigrationExecution {
 			}
 		}
 		return values;
+	}
+
+	// set MagicSet Id value to corresPondingRules
+	private void setNewMagicIdToCorrespondingRules(MagicCondition m,
+			String idValue) {
+		for (Rule rule : rules) {
+			for (PairForMagicCondition pm : m.getRight()) {
+				if (rule.getHead().getKind().equals(pm.getKind())) {
+					rule.getHead().getScheme().set(pm.getPositionId(), idValue);
+				}
+				for (Predicate p : rule.getPredicates()) {
+					if (p.getKind().equals(pm.getKind())) {
+						p.getScheme().set(pm.getPositionId(), idValue);
+					}
+				}
+			}
+		}
 	}
 
 	// set MagicSet View as an extra Predicate to corresPondingRules

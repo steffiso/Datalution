@@ -59,8 +59,6 @@ public class AdminServlet extends HttpServlet {
 		public void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException{			
 
 			String command = req.getParameter("command");
-			
-			resp.sendRedirect("/admin");
 
 			DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
 			Database db = new Database(ds);
@@ -92,6 +90,8 @@ public class AdminServlet extends HttpServlet {
 					}
 				}
 			}
+			resp.sendRedirect("/admin");
+		
 		}
 		
 
