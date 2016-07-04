@@ -105,17 +105,23 @@ public class Database {
 //
 //        String rules = (String) syncCache.get("Rules");       
 		
-		Entity rulesEntity = null;
-		try {
-			rulesEntity = ds.get(KeyFactory.createKey("Rules",1));
-		} catch (EntityNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		//Entity rulesEntity = null;
+		List<Entity> rulesEntity = null;
+//		try {
+			Query q = new Query().setAncestor(KeyFactory.createKey("Rules", 1));
+			rulesEntity = ds.prepare(q).asList(FetchOptions.Builder.withDefaults());
+			//rulesEntity = ds.get(KeyFactory.createKey("Rules",1));
+//		} catch (EntityNotFoundException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
 		if(rulesEntity!=null){
-		String rules = (String) rulesEntity.getProperty("value");
-        ArrayList<Rule> rulesList = new ArrayList<Rule>();
-        if (rules != null){
+			String rules = null;
+			for(Entity e: rulesEntity) 
+				rules = rules + (String) e.getProperty("value");
+			ArrayList<Rule> rulesList = new ArrayList<Rule>();
+			
+			if (rules != null){
         	 ArrayList<String> rulesStringList = new ArrayList<String>(Arrays.asList(rules.split("\n")));
              for (String rule: rulesStringList){
              	Rule r = new Rule();
@@ -161,14 +167,14 @@ public class Database {
 //          }
 //        }  
 		
-		Entity rulesEntity = null;
-		String rules = "";
-		try {
-			rulesEntity = ds.get(KeyFactory.createKey("Rules",1));
-			rules = (String) rulesEntity.getProperty("value");
-		} catch (EntityNotFoundException e) {
-			// TODO Auto-generated catch block
-		}
+//		List<Entity> rulesEntity = null;
+//		String rules = "";
+//		try {
+//			Query q = new Query().setAncestor(KeyFactory.createKey("Rules", 1));
+//			rulesEntity = ds.prepare(q).asList(FetchOptions.Builder.withDefaults());
+//		} catch (EntityNotFoundException e) {
+//			// TODO Auto-generated catch block
+//		}
 //		
 //
 //		ArrayList<String> ruleslist = new ArrayList<String>(Arrays.asList(newRules.split("\n")));
@@ -178,9 +184,9 @@ public class Database {
 //				newRules = newRules + s + "\n";
 //			}
 //		}
-		rules = rules + newRules;
-		Entity e = new Entity(KeyFactory.createKey("Rules",1));
-		e.setProperty("value", rules);
+//		rules = rules + newRules;
+		Entity e = new Entity("Rule", KeyFactory.createKey("Rules",1));
+		e.setProperty("value", newRules);
 		ds.put(e);
 		
 		

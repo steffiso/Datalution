@@ -47,52 +47,51 @@ public class AdminServlet extends HttpServlet {
 	String command;
 	Date timestamp;
 	
-		public void doGet(HttpServletRequest req,
-	             HttpServletResponse resp) throws IOException, ServletException{
-			
-			resp.setContentType("text/plain");		    
-//			resp.getWriter().println(d.toString());
-			RequestDispatcher jsp = req.getRequestDispatcher("/WEB-INF/admin.jsp");
-		    jsp.forward(req, resp);
-		 }
+	public void doGet(HttpServletRequest req,
+             HttpServletResponse resp) throws IOException, ServletException{
 		
-		public void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException{			
-
-			String command = req.getParameter("command");
-
-			DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-			Database db = new Database(ds);
-			
-			DatalogRulesGenerator drg = new DatalogRulesGenerator(db);
-			if (command.equals("start")) {
-				db.addStartEntities();
-			}
-			else {
-				String rules = "";
-				try {
-					rules = drg.getRules(command);
-				} catch (InputMismatchException e) {
-					// TODO Auto-generated catch block
-					resp.getWriter().println(e.getMessage());
-				} catch (ParseException e) {
-					// TODO Auto-generated catch block
-					resp.getWriter().println(e.getMessage());
-				} catch (parserRuletoJava.ParseException e) {
-					// TODO Auto-generated catch block
-					resp.getWriter().println(e.getMessage());
-				}
-				if (!rules.equals("")) {
-					try {
-						db.addRules(rules);
-					} catch (ServletException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-				}
-			}
-			resp.sendRedirect("/admin");
+		resp.setContentType("text/plain");		 
+		RequestDispatcher jsp = req.getRequestDispatcher("/WEB-INF/admin.jsp");
+	    jsp.forward(req, resp);
+	 }
 		
+	public void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException{			
+
+		String command = req.getParameter("command");
+
+		DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
+		Database db = new Database(ds);
+		
+		DatalogRulesGenerator drg = new DatalogRulesGenerator(db);
+		if (command.equals("start")) {
+			db.addStartEntities();
 		}
+		else {
+			String rules = "";
+			try {
+				rules = drg.getRules(command);
+			} catch (InputMismatchException e) {
+				// TODO Auto-generated catch block
+				resp.getWriter().println(e.getMessage());
+			} catch (ParseException e) {
+				// TODO Auto-generated catch block
+				resp.getWriter().println(e.getMessage());
+			} catch (parserRuletoJava.ParseException e) {
+				// TODO Auto-generated catch block
+				resp.getWriter().println(e.getMessage());
+			}
+			if (!rules.equals("")) {
+				try {
+					db.addRules(rules);
+				} catch (ServletException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+		resp.sendRedirect("/admin");
+	
+	}
 		
 
 }
