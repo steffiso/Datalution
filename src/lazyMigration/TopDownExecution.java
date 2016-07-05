@@ -486,8 +486,9 @@ public class TopDownExecution extends MigrationExecution {
 					i++;
 
 				}
-				if (set)
-					set = testIfMagicSetExists(value);
+				/*
+				 * if (set) set = testIfMagicSetExists(value);
+				 */
 				if (set)
 					values.add(value.getListOfValues());
 			}
@@ -496,15 +497,7 @@ public class TopDownExecution extends MigrationExecution {
 		// test if entity exists in datastore
 		{
 			if (!predicate.getScheme().get(0).startsWith("?")) {
-				// DatastoreService ds = DatastoreServiceFactory
-				// .getDatastoreService();
-				//
-				// Query playerQuery = new Query(kind).setAncestor(
-				// KeyFactory.createKey(kind.replaceAll("\\d", ""),
-				// predicate.getScheme().get(0))).addSort("ts",
-				// SortDirection.DESCENDING);
-				// List<Entity> results = ds.prepare(playerQuery).asList(
-				// FetchOptions.Builder.withDefaults().limit(1));
+
 				String id = predicate.getScheme().get(0);
 				Entity results = null;
 				if (!(kind.startsWith("latest") || kind.startsWith("legacy"))) {
@@ -535,38 +528,29 @@ public class TopDownExecution extends MigrationExecution {
 											.toString());
 
 							} else {
-								if (results.getProperty(wert.substring(1)
-										.replaceAll("\\d", "")) == null)
+								String property = wert.substring(1).replaceAll(
+										"\\d", "");
+								if (results.getProperty(property) == null)
 									valueNew.add("null");
-								else if (results
 
-										.getProperty(
-												wert.substring(1).replaceAll(
-														"\\d", "")).getClass()
-										.equals(String.class))
+								else if (results.getProperty(property)
+										.getClass().equals(String.class))
 									valueNew.add("'"
-											+ results
-
-											.getProperty(
-													wert.substring(1)
-															.replaceAll("\\d",
-																	""))
+											+ results.getProperty(property)
 													.toString() + "'");
 
 								else
-									valueNew.add(results
-
-									.getProperty(
-											wert.substring(1).replaceAll("\\d",
-													"")).toString());
+									valueNew.add(results.getProperty(property)
+											.toString());
 							}
 						}
 					}
 					Fact v = new Fact(kind, valueNew);
 					if (!factExists(facts, v))
 						facts.add(v);
-					if (set)
-						set = testIfMagicSetExists(v);
+					/*
+					 * if (set) set = testIfMagicSetExists(v);
+					 */
 					if (set)
 						values.add(valueNew);
 					// }
@@ -608,7 +592,7 @@ public class TopDownExecution extends MigrationExecution {
 	}
 
 	// test if a value of a Fact exists in the MagicSet View
-	private boolean testIfMagicSetExists(Fact value) {
+	/*private boolean testIfMagicSetExists(Fact value) {
 		boolean exists = true;
 		if (magicList != null)
 			for (MagicCondition m : magicList) {
@@ -626,9 +610,9 @@ public class TopDownExecution extends MigrationExecution {
 					}
 			}
 		return exists;
-	}
+	}*/
 
-	// get Facts of MagicSet View
+	/*// get Facts of MagicSet View
 	private ArrayList<String> getMGViewFacts(String nameOfMagicView) {
 		ArrayList<String> mgViewFacts = null;
 		for (Fact value : facts) {
@@ -640,7 +624,7 @@ public class TopDownExecution extends MigrationExecution {
 			}
 		}
 		return mgViewFacts;
-	}
+	}*/
 
 	// generate MagicSet View in Facts
 	private ArrayList<ArrayList<String>> generateMagicSet(
@@ -652,24 +636,16 @@ public class TopDownExecution extends MigrationExecution {
 				if (magicCondition.getLeft().getKind().equals(kind)) {
 					if (magicCondition.hasAlreadyResults() == false) {
 						String newViewName = "MG" + numberOfMGView;
-						if (values.isEmpty()) {
-							ArrayList<String> nullList = new ArrayList<String>();
-							nullList.add("null");
-							facts.add(new Fact(newViewName, nullList));
-						} else
-							for (ArrayList<String> valueList : values) {
-								facts.add(new Fact(
-										newViewName,
-										new ArrayList<String>(
-												valueList
-														.subList(
-																magicCondition
-																		.getLeft()
-																		.getPositionId(),
-																magicCondition
-																		.getLeft()
-																		.getPositionId() + 1))));
-							}
+						/*
+						 * if (values.isEmpty()) { ArrayList<String> nullList =
+						 * new ArrayList<String>(); nullList.add("null");
+						 * facts.add(new Fact(newViewName, nullList)); } else
+						 * for (ArrayList<String> valueList : values) {
+						 * facts.add(new Fact( newViewName, new
+						 * ArrayList<String>( valueList .subList( magicCondition
+						 * .getLeft() .getPositionId(), magicCondition
+						 * .getLeft() .getPositionId() + 1)))); }
+						 */
 						magicCondition.setAlreadyFoundResults(true);
 						magicCondition.setNameOfMagicView(newViewName);
 						// setNewMagicPredicateToCorrespondingRules(
@@ -708,19 +684,15 @@ public class TopDownExecution extends MigrationExecution {
 	}
 
 	// set MagicSet View as an extra Predicate to corresPondingRules
-	private void setNewMagicPredicateToCorrespondingRules(MagicCondition m,
-			String newViewName) {
-		for (Rule rule : rules) {
-			for (PairForMagicCondition pm : m.getRight())
-				if (rule.getHead().getKind().equals(pm.getKind())) {
-					ArrayList<String> scheme = new ArrayList<String>();
-					scheme.add(rule.getHead().getScheme()
-							.get(pm.getPositionId()));
-					rule.getPredicates().add(
-							new Predicate(newViewName, 1, scheme));
-				}
-		}
-	}
+	/*
+	 * private void setNewMagicPredicateToCorrespondingRules(MagicCondition m,
+	 * String newViewName) { for (Rule rule : rules) { for
+	 * (PairForMagicCondition pm : m.getRight()) if
+	 * (rule.getHead().getKind().equals(pm.getKind())) { ArrayList<String>
+	 * scheme = new ArrayList<String>(); scheme.add(rule.getHead().getScheme()
+	 * .get(pm.getPositionId())); rule.getPredicates().add( new
+	 * Predicate(newViewName, 1, scheme)); } } }
+	 */
 
 	// rename rules and delete Conditions
 	private void rulesRename(Rule rule) {
@@ -822,17 +794,14 @@ public class TopDownExecution extends MigrationExecution {
 	}
 
 	// tests if kind with ?id is avalaible in facts
-	private boolean existIDForKind(String kind, String id) {
-		for (Fact value : facts) {
-			if ((value.getKind().startsWith("latest" + kind)
-					|| value.getKind().startsWith("legacy" + kind)
-					|| value.getKind().startsWith("get" + kind) || value
-					.getKind().startsWith(kind))
-					&& value.getListOfValues().get(0).equals(id)) {
-				return true;
-			}
-		}
-		return false;
-	}
+	/*
+	 * private boolean existIDForKind(String kind, String id) { for (Fact value
+	 * : facts) { if ((value.getKind().startsWith("latest" + kind) ||
+	 * value.getKind().startsWith("legacy" + kind) ||
+	 * value.getKind().startsWith("get" + kind) || value
+	 * .getKind().startsWith(kind)) &&
+	 * value.getListOfValues().get(0).equals(id)) { return true; } } return
+	 * false; }
+	 */
 
 }

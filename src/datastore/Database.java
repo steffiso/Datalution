@@ -74,21 +74,21 @@ public class Database {
 		//Entity player = new Entity(KeyFactory.createKey("Player",id));
 		Entity player1 = new Entity("Player1",id + "1", KeyFactory.createKey("Player", id));
 		//		new Entity(new KeyFactory.Builder("Player",id).addChild("Player1",id + "1").getKey());
-		player1.setProperty("id", id);
+		player1.setProperty("id", 1);
 		player1.setProperty("name", "Lisa");
-		player1.setProperty("ts", "1");
+		player1.setProperty("ts", 1);
 		
 		Entity player2 = new Entity("Player1",id + "2", KeyFactory.createKey("Player", id));
-		player2.setProperty("id", "1");
+		player2.setProperty("id", 1);
 		player2.setProperty("name", "Lisa S.");
-		player2.setProperty("ts", "2");
+		player2.setProperty("ts", 2);
 		
 		String id2 = "1";
 		Entity mission = new Entity("Mission1",id2 + "1", KeyFactory.createKey("Mission", id2));
-		mission.setProperty("id", id2);
+		mission.setProperty("id", 1);
 		mission.setProperty("title", "go to library");
-		mission.setProperty("pid", id);
-		mission.setProperty("ts", "1");
+		mission.setProperty("pid", 1);
+		mission.setProperty("ts", 1);
 		
 		ds.put(schemaPlayer1);
 		ds.put(schemaMission1);
@@ -116,12 +116,12 @@ public class Database {
 //			e.printStackTrace();
 //		}
 		if(rulesEntity!=null){
-			String rules = null;
+			String rules = "";
 			for(Entity e: rulesEntity) 
 				rules = rules + (String) e.getProperty("value");
 			ArrayList<Rule> rulesList = new ArrayList<Rule>();
 			
-			if (rules != null){
+			if (!rules.equals("")){
         	 ArrayList<String> rulesStringList = new ArrayList<String>(Arrays.asList(rules.split("\n")));
              for (String rule: rulesStringList){
              	Rule r = new Rule();

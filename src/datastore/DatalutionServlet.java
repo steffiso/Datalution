@@ -47,6 +47,7 @@ public class DatalutionServlet extends HttpServlet {
 		if (req.getParameter("username") != null) {
 			username = req.getParameter("username");
 		}
+		else username=null;
 		if (username != null) {
 
 			Query playerQuery = new Query("Player"+ db.getLatestSchemaVersion("Player")).setAncestor(

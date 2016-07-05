@@ -1,8 +1,6 @@
 package datastore;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.InputMismatchException;
 import java.util.List;
@@ -15,29 +13,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
-import com.google.appengine.api.datastore.Entity;
-import com.google.appengine.api.datastore.FetchOptions;
-import com.google.appengine.api.datastore.Key;
-import com.google.appengine.api.datastore.KeyFactory;
-import com.google.appengine.api.datastore.Query;
-import com.google.appengine.api.datastore.Transaction;
-import com.google.appengine.api.datastore.Query.SortDirection;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-
-import javax.cache.Cache;
-import javax.cache.CacheException;
-import javax.cache.CacheFactory;
-import javax.cache.CacheManager;
-import com.google.appengine.api.memcache.jsr107cache.GCacheFactory;
-
-
 import datalog.DatalogRulesGenerator;
 import parserQueryToDatalogToJava.ParseException;
-
-import static com.googlecode.objectify.ObjectifyService.ofy;
 
 @SuppressWarnings("serial")
 public class AdminServlet extends HttpServlet {
@@ -64,7 +41,8 @@ public class AdminServlet extends HttpServlet {
 		
 		DatalogRulesGenerator drg = new DatalogRulesGenerator(db);
 		if (command.equals("start")) {
-			db.addStartEntities();
+			db.addStartEntities();	
+			resp.sendRedirect("/admin");
 		}
 		else {
 			String rules = "";
@@ -88,8 +66,10 @@ public class AdminServlet extends HttpServlet {
 					e.printStackTrace();
 				}
 			}
+			resp.getWriter().println("Successfully add schema change\n\nGenerated rules:\n"+rules);
 		}
-		resp.sendRedirect("/admin");
+	
+		
 	
 	}
 		

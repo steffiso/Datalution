@@ -6,7 +6,7 @@
 			<form method="post">
 
 				<p>
-					<span class="tab">Command:</span><input type="text" name="command">
+					<span class="tab">Command: </span><input type="text" name="command" size="60">
 				</p>
 
 				<p>

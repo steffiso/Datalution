@@ -29,7 +29,7 @@ span.tab {
 				<c:when test="${values == null}">
 					<form method="post">
 
-						<p>Create new Character</p>
+						<p>Create new Mission</p>
 						<p>Please fill "put" command and click "Create"</p>
 
 						<p>
@@ -42,14 +42,14 @@ span.tab {
 					</form>
 				</c:when>
 				<c:otherwise>
-					<p>Show Character</p>
+					<p>Show Mission</p>
 					<p>
 						<span class="tab">Values:</span><input type="text" name="value"
 							size="60" value="${values}">
 					</p>
 					<form method="post">
 
-						<p>Change Character</p>
+						<p>Change Mission</p>
 						<p>Please fill "put" command and click "Change"</p>
 
 						<p>

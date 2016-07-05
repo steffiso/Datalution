@@ -1,12 +1,9 @@
 package datastore;
 
-import static com.googlecode.objectify.ObjectifyService.ofy;
-
 import java.io.IOException;
 import java.io.StringReader;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.InputMismatchException;
 import java.util.List;
 import java.util.Map;
@@ -28,10 +25,8 @@ import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.FetchOptions;
-import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.Query;
-import com.google.appengine.api.datastore.Transaction;
 import com.google.appengine.api.datastore.Query.SortDirection;
 
 import datalog.Fact;
@@ -40,7 +35,7 @@ import datalog.Rule;
 
 @SuppressWarnings("serial")
 public class MissionServlet extends HttpServlet {
-	private String username;
+	private String missionID;
 
 	public void doGet(HttpServletRequest req, HttpServletResponse resp)
 			throws IOException, ServletException {
@@ -51,17 +46,29 @@ public class MissionServlet extends HttpServlet {
 		RequestDispatcher jsp = null;
 		// saveCurrentSchema("Mission", "?id,?title,?pid");
 		if (req.getParameter("username") != null) {
-			username = req.getParameter("username");
+			missionID = req.getParameter("username");
 		}
-		if (username != null) {
+		else missionID=null;
+		if (missionID != null) {
 
-			executeGetCommand("get Mission.id="+username);
-			Query playerQuery = new Query("Mission"+ db.getLatestSchemaVersion("Mission")).setAncestor(
-					KeyFactory.createKey("Mission", username)).addSort("ts",
+			Query missionQuery = new Query("Mission"+ db.getLatestSchemaVersion("Mission")).setAncestor(
+					KeyFactory.createKey("Mission", missionID)).addSort("ts",
 					SortDirection.DESCENDING);
-			List<Entity> results = ds.prepare(playerQuery).asList(
+			List<Entity> results = ds.prepare(missionQuery).asList(
 					FetchOptions.Builder.withDefaults().limit(1));
-			if (!results.isEmpty()) {
+			
+			if (results.isEmpty()) {
+				// if no database entry exist => 
+				// top down execution + retry querying
+				executeGetCommand("get Mission.id="+missionID);
+				missionQuery = new Query("Mission"+ db.getLatestSchemaVersion("Mission")).setAncestor(
+						KeyFactory.createKey("Mission", missionID)).addSort("ts",
+						SortDirection.DESCENDING);
+				results = ds.prepare(missionQuery).asList(
+						FetchOptions.Builder.withDefaults().limit(1));				
+			}
+			
+			if (!results.isEmpty()){
 				userPlayer = results.get(0);
 				Schema latestSchema =db.getLatestSchema("Mission");
 				String values = "[";
@@ -70,8 +77,9 @@ public class MissionServlet extends HttpServlet {
 							+ userPlayer.getProperty(s.substring(1)) + ", ";
 				values = values + "ts=" + userPlayer.getProperty("ts") + "]";
 				req.setAttribute("values", values);
+			
 			}
-			req.setAttribute("username", username);
+			req.setAttribute("username", missionID);
 		}
 
 		jsp = req.getRequestDispatcher("/WEB-INF/mission.jsp");
@@ -84,13 +92,13 @@ public class MissionServlet extends HttpServlet {
 
 		DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
 		if (req.getParameter("newPlayer").equals("true")) {
-			Entity player = new Entity(KeyFactory.createKey("Mission", username));
+			Entity player = new Entity(KeyFactory.createKey("Mission", missionID));
 			ds.put(player);
 		}
 		Entity childPlayer = null;
 		try {
 			childPlayer = new ParserForPut(new StringReader(
-					req.getParameter("name"))).start(new Database(), username);
+					req.getParameter("name"))).start(new Database(), missionID);
 		} catch (InputMismatchException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -100,7 +108,6 @@ public class MissionServlet extends HttpServlet {
 		}
 
 		ds.put(childPlayer);
-
 		resp.sendRedirect("/mission");
 
 	}
@@ -177,7 +184,7 @@ public class MissionServlet extends HttpServlet {
 		System.out.println(answerString);
 	}
 
-	public void saveCurrentSchema(String kind, String newSchema) {
+	/*public void saveCurrentSchema(String kind, String newSchema) {
 		DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
 		Entity player = new Entity(KeyFactory.createKey("Schema", "Mission"));
 		ds.put(player);
@@ -188,5 +195,5 @@ public class MissionServlet extends HttpServlet {
 		schema.setProperty("value", newSchema);
 		schema.setProperty("timestamp", new Date());
 		ds.put(schema);
-	}
+	}*/
 }
