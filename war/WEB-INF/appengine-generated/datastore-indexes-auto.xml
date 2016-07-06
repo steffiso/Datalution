@@ -1,14 +1,9 @@
-<!-- Indices written at Tue, 5 Jul 2016 13:29:24 CEST -->
+<!-- Indices written at Wed, 6 Jul 2016 11:20:16 CEST -->
 
 <datastore-indexes>
 
-    <!-- Used 1 time in query history -->
-    <datastore-index kind="Mission1" ancestor="true" source="auto">
-        <property name="ts" direction="desc"/>
-    </datastore-index>
-
-    <!-- Used 1 time in query history -->
-    <datastore-index kind="Player1" ancestor="true" source="auto">
+    <!-- Used 3 times in query history -->
+    <datastore-index kind="Player2" ancestor="true" source="auto">
         <property name="ts" direction="desc"/>
     </datastore-index>
 

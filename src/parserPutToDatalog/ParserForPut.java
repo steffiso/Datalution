@@ -128,7 +128,7 @@ public class ParserForPut implements ParserForPutConstants {
       ;
     }
     if (value == null) {if (true) throw new InputMismatchException("no attributes for " + kind.toString());}
-    value.setProperty("ts", Integer.toString(newTS));
+    value.setProperty("ts", newTS);
     {if (true) return value;}
     throw new Error("Missing return statement in function");
   }
