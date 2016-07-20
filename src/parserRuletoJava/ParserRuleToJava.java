@@ -16,19 +16,21 @@ public class ParserRuleToJava implements ParserRuleToJavaConstants {
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case not:
     case kindValue:
-    case 17:
+    case latest:
+    case 18:
       leftRelation = getRelation();
-      jj_consume_token(14);
+      jj_consume_token(15);
       p = getRelationList();
       q = new Rule(leftRelation, p);
       querys.add(q);
-      jj_consume_token(15);
+      jj_consume_token(16);
       label_1:
       while (true) {
         switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
         case not:
         case kindValue:
-        case 17:
+        case latest:
+        case 18:
           ;
           break;
         default:
@@ -36,11 +38,11 @@ public class ParserRuleToJava implements ParserRuleToJavaConstants {
           break label_1;
         }
         leftRelation = getRelation();
-        jj_consume_token(14);
+        jj_consume_token(15);
         p = getRelationList();
           q = new Rule(leftRelation, p);
           querys.add(q);
-        jj_consume_token(15);
+        jj_consume_token(16);
       }
       break;
     default:
@@ -60,20 +62,22 @@ public class ParserRuleToJava implements ParserRuleToJavaConstants {
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case not:
     case kindValue:
-    case 17:
+    case latest:
+    case 18:
       leftRelation = getRelation();
-      jj_consume_token(14);
+      jj_consume_token(15);
       p = getRelationList();
       leftRelation.setHead(true);
       q = new Rule(leftRelation, p);
       querys.add(q);
-      jj_consume_token(15);
+      jj_consume_token(16);
       label_2:
       while (true) {
         switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
         case not:
         case kindValue:
-        case 17:
+        case latest:
+        case 18:
           ;
           break;
         default:
@@ -81,12 +85,12 @@ public class ParserRuleToJava implements ParserRuleToJavaConstants {
           break label_2;
         }
         leftRelation = getRelation();
-        jj_consume_token(14);
+        jj_consume_token(15);
         p = getRelationList();
           leftRelation.setHead(true);
           q = new Rule(leftRelation, p);
           querys.add(q);
-        jj_consume_token(15);
+        jj_consume_token(16);
       }
       break;
     default:
@@ -110,11 +114,13 @@ public class ParserRuleToJava implements ParserRuleToJavaConstants {
     case number:
     case not:
     case kindValue:
-    case 17:
+    case latest:
+    case 18:
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case not:
       case kindValue:
-      case 17:
+      case latest:
+      case 18:
         predicate = getRelation();
           values.add(predicate);
         break;
@@ -133,18 +139,19 @@ public class ParserRuleToJava implements ParserRuleToJavaConstants {
       label_3:
       while (true) {
         switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-        case 16:
+        case 17:
           ;
           break;
         default:
           jj_la1[5] = jj_gen;
           break label_3;
         }
-        jj_consume_token(16);
+        jj_consume_token(17);
         switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
         case not:
         case kindValue:
-        case 17:
+        case latest:
+        case 18:
           predicate = getRelation();
             values.add(predicate);
           break;
@@ -173,6 +180,7 @@ public class ParserRuleToJava implements ParserRuleToJavaConstants {
   final public Predicate getRelation() throws ParseException {
   Token kind = null;
   Token schemaToken = null;
+  Token latestToken = null;
   String value = null;
   String attribute = null;
   ArrayList < String > scheme = null;
@@ -184,8 +192,8 @@ public class ParserRuleToJava implements ParserRuleToJavaConstants {
     scheme = new ArrayList < String > ();
     int pos = 0;
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-    case 17:
-      jj_consume_token(17);
+    case 18:
+      jj_consume_token(18);
     isHead = true;
       break;
     default:
@@ -201,16 +209,24 @@ public class ParserRuleToJava implements ParserRuleToJavaConstants {
       jj_la1[9] = jj_gen;
       ;
     }
+    switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
+    case latest:
+      latestToken = jj_consume_token(latest);
+      break;
+    default:
+      jj_la1[10] = jj_gen;
+      ;
+    }
     kind = jj_consume_token(kindValue);
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case number:
       schemaToken = jj_consume_token(number);
       break;
     default:
-      jj_la1[10] = jj_gen;
+      jj_la1[11] = jj_gen;
       ;
     }
-    jj_consume_token(18);
+    jj_consume_token(19);
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case nullValue:
     case variable:
@@ -221,25 +237,26 @@ public class ParserRuleToJava implements ParserRuleToJavaConstants {
       label_4:
       while (true) {
         switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-        case 16:
+        case 17:
           ;
           break;
         default:
-          jj_la1[11] = jj_gen;
+          jj_la1[12] = jj_gen;
           break label_4;
         }
-        jj_consume_token(16);
+        jj_consume_token(17);
         value = getValue();
           scheme.add(value);
       }
       break;
     default:
-      jj_la1[12] = jj_gen;
+      jj_la1[13] = jj_gen;
       ;
     }
-    jj_consume_token(19);
+    jj_consume_token(20);
     predicate = new Predicate(kind.toString() + schemaToken.toString(), scheme.size(), scheme);
     if (isNot) predicate.setNot(true);
+    if (latestToken != null) predicate.setLatest(true);
     predicate.setHead(isHead);
     {if (true) return predicate;}
     throw new Error("Missing return statement in function");
@@ -273,7 +290,7 @@ public class ParserRuleToJava implements ParserRuleToJavaConstants {
       valueOfToken = jj_consume_token(nullValue);
       break;
     default:
-      jj_la1[13] = jj_gen;
+      jj_la1[14] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
@@ -290,13 +307,13 @@ public class ParserRuleToJava implements ParserRuleToJavaConstants {
   public Token jj_nt;
   private int jj_ntk;
   private int jj_gen;
-  final private int[] jj_la1 = new int[14];
+  final private int[] jj_la1 = new int[15];
   static private int[] jj_la1_0;
   static {
       jj_la1_init_0();
    }
    private static void jj_la1_init_0() {
-      jj_la1_0 = new int[] {0x21800,0x21800,0x21800,0x21800,0x21ae0,0x10000,0x21ae0,0x21ae0,0x20000,0x800,0x200,0x10000,0x2e0,0x2e0,};
+      jj_la1_0 = new int[] {0x45800,0x45800,0x45800,0x45800,0x45ae0,0x20000,0x45ae0,0x45ae0,0x40000,0x800,0x4000,0x200,0x20000,0x2e0,0x2e0,};
    }
 
   /** Constructor with InputStream. */
@@ -310,7 +327,7 @@ public class ParserRuleToJava implements ParserRuleToJavaConstants {
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 14; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 15; i++) jj_la1[i] = -1;
   }
 
   /** Reinitialise. */
@@ -324,7 +341,7 @@ public class ParserRuleToJava implements ParserRuleToJavaConstants {
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 14; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 15; i++) jj_la1[i] = -1;
   }
 
   /** Constructor. */
@@ -334,7 +351,7 @@ public class ParserRuleToJava implements ParserRuleToJavaConstants {
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 14; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 15; i++) jj_la1[i] = -1;
   }
 
   /** Reinitialise. */
@@ -344,7 +361,7 @@ public class ParserRuleToJava implements ParserRuleToJavaConstants {
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 14; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 15; i++) jj_la1[i] = -1;
   }
 
   /** Constructor with generated Token Manager. */
@@ -353,7 +370,7 @@ public class ParserRuleToJava implements ParserRuleToJavaConstants {
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 14; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 15; i++) jj_la1[i] = -1;
   }
 
   /** Reinitialise. */
@@ -362,7 +379,7 @@ public class ParserRuleToJava implements ParserRuleToJavaConstants {
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 14; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 15; i++) jj_la1[i] = -1;
   }
 
   private Token jj_consume_token(int kind) throws ParseException {
@@ -413,12 +430,12 @@ public class ParserRuleToJava implements ParserRuleToJavaConstants {
   /** Generate ParseException. */
   public ParseException generateParseException() {
     jj_expentries.clear();
-    boolean[] la1tokens = new boolean[20];
+    boolean[] la1tokens = new boolean[21];
     if (jj_kind >= 0) {
       la1tokens[jj_kind] = true;
       jj_kind = -1;
     }
-    for (int i = 0; i < 14; i++) {
+    for (int i = 0; i < 15; i++) {
       if (jj_la1[i] == jj_gen) {
         for (int j = 0; j < 32; j++) {
           if ((jj_la1_0[i] & (1<<j)) != 0) {
@@ -427,7 +444,7 @@ public class ParserRuleToJava implements ParserRuleToJavaConstants {
         }
       }
     }
-    for (int i = 0; i < 20; i++) {
+    for (int i = 0; i < 21; i++) {
       if (la1tokens[i]) {
         jj_expentry = new int[1];
         jj_expentry[0] = i;

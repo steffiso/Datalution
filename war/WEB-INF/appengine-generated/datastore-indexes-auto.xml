@@ -1,9 +1,39 @@
-<!-- Indices written at Wed, 6 Jul 2016 11:20:16 CEST -->
+<!-- Indices written at Wed, 20 Jul 2016 15:20:17 CEST -->
 
 <datastore-indexes>
 
-    <!-- Used 3 times in query history -->
+    <!-- Used 13 times in query history -->
+    <datastore-index kind="SchemaPlayer" ancestor="true" source="auto">
+        <property name="ts" direction="desc"/>
+    </datastore-index>
+
+    <!-- Used 16 times in query history -->
+    <datastore-index kind="SchemaMission" ancestor="true" source="auto">
+        <property name="ts" direction="desc"/>
+    </datastore-index>
+
+    <!-- Used 4 times in query history -->
+    <datastore-index kind="Player3" ancestor="true" source="auto">
+        <property name="ts" direction="desc"/>
+    </datastore-index>
+
+    <!-- Used 6 times in query history -->
+    <datastore-index kind="Mission2" ancestor="true" source="auto">
+        <property name="ts" direction="desc"/>
+    </datastore-index>
+
+    <!-- Used 2 times in query history -->
+    <datastore-index kind="Mission1" ancestor="true" source="auto">
+        <property name="ts" direction="desc"/>
+    </datastore-index>
+
+    <!-- Used 2 times in query history -->
     <datastore-index kind="Player2" ancestor="true" source="auto">
+        <property name="ts" direction="desc"/>
+    </datastore-index>
+
+    <!-- Used 2 times in query history -->
+    <datastore-index kind="Player1" ancestor="true" source="auto">
         <property name="ts" direction="desc"/>
     </datastore-index>
 

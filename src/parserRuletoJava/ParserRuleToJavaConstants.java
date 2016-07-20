@@ -28,6 +28,8 @@ public interface ParserRuleToJavaConstants {
   int kindValue = 12;
   /** RegularExpression Id. */
   int nameValue = 13;
+  /** RegularExpression Id. */
+  int latest = 14;
 
   /** Lexical state. */
   int DEFAULT = 0;
@@ -48,6 +50,7 @@ public interface ParserRuleToJavaConstants {
     "\"not\"",
     "<kindValue>",
     "<nameValue>",
+    "<latest>",
     "\":-\"",
     "\".\"",
     "\",\"",

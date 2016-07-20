@@ -14,20 +14,31 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
 
   private String idStr;
 
+  private int id;
+
   private String rulesStr;
 
   private static ArrayList < Rule > rules = new ArrayList < Rule > ();
 
   private static Database db;
 
+  private static Schema currentSchemaFrom = null;
+
+  private static Schema currentSchemaTo = null;
+
   public String getKind()
   {
     return kindStr;
   }
 
-  public String getId()
+  public String getIdStr()
   {
     return idStr;
+  }
+
+  public int getId()
+  {
+    return id;
   }
 
   public String getRules()
@@ -35,10 +46,16 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
     return rulesStr;
   }
 
-  private static ArrayList < String > getCurrentSchema(String kind) throws InputMismatchException, IOException
+  private static void getSchemaFromDB(String kindFrom, String kindTo) throws InputMismatchException, IOException
+  {
+    if (!kindFrom.equals("")) currentSchemaFrom = getCurrentSchema(kindFrom);
+    if (!kindTo.equals("")) currentSchemaTo = getCurrentSchema(kindTo);
+  }
+
+  private static Schema getCurrentSchema(String kind) throws InputMismatchException, IOException
   {
     Schema currentSchema = db.getLatestSchema(kind);
-    if (currentSchema != null) return currentSchema.getAttributes();
+    if (currentSchema != null) return currentSchema;
     else return null;
   }
 
@@ -68,23 +85,22 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
     return changedSchema;
   }
 
-  private static int getCurrentSchemaVersion(String kind) throws IOException
-  {
-    int currentSchemaVersion = db.getLatestSchemaVersion(kind);
-    return currentSchemaVersion;
-  }
-
   private static ArrayList < String > getNewSchemaDelete(String kind, String value) throws InputMismatchException, IOException
   {
-    ArrayList < String > currentSchema = getCurrentSchema(kind);
-    if (currentSchema == null)
+    ArrayList < String > currentSchemaAttributes = null;
+    if (currentSchemaFrom.getKind().equals(kind))
+        currentSchemaAttributes = currentSchemaFrom.getAttributes();
+    else if (currentSchemaTo.getKind().equals(kind))
+        currentSchemaAttributes = currentSchemaTo.getAttributes();
+
+    if (currentSchemaAttributes == null)
     {
       throw new InputMismatchException("no info for schema of " + kind + " found");
     }
     else
     {
       ArrayList < String > tempNewSchema = new ArrayList < String > ();
-      for (String attribute : currentSchema)
+      for (String attribute : currentSchemaAttributes)
       {
         if (!attribute.equals("?" + value)) tempNewSchema.add(attribute);
       }
@@ -94,74 +110,32 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
 
   private static ArrayList < String > getNewSchemaAdd(String kind, String value) throws InputMismatchException, IOException
   {
-    ArrayList < String > currentSchema = getCurrentSchema(kind);
-    if (currentSchema == null)
+    ArrayList < String > currentSchemaAttributes = null;
+    if (currentSchemaFrom.getKind().equals(kind)) currentSchemaAttributes = currentSchemaFrom.getAttributes();
+    else if (currentSchemaTo.getKind().equals(kind)) currentSchemaAttributes = currentSchemaTo.getAttributes();
+    if (currentSchemaAttributes == null)
     {
       throw new InputMismatchException("no info for schema of " + kind + " found");
     }
     else
     {
-      currentSchema.add(value);
-      return currentSchema;
+      currentSchemaAttributes.add(value);
+      return currentSchemaAttributes;
     }
   }
 
   private static void saveCurrentSchema(String kind, ArrayList < String > newSchema) throws InputMismatchException, IOException
   {
-    ArrayList < String > currentSchema = getCurrentSchema(kind);
-    if (currentSchema == null)
+    ArrayList < String > currentSchemaAttributes = null;
+    if (currentSchemaFrom.getKind().equals(kind)) currentSchemaAttributes = currentSchemaFrom.getAttributes();
+    else if (currentSchemaTo.getKind().equals(kind)) currentSchemaAttributes = currentSchemaTo.getAttributes();
+    if (currentSchemaAttributes == null)
     {
       throw new InputMismatchException("no info for schema of " + kind + " found");
     }
     else
     {
-      if (!currentSchema.equals(newSchema))
-      {
-        db.saveCurrentSchema(kind, newSchema);
-      }
-    }
-  }
-
-  private static String getResidualRules(String kind) throws InputMismatchException, IOException
-  {
-    String value = null;
-    ArrayList < String > schema = getCurrentSchema(kind);
-    if (schema == null)
-    {
-      throw new InputMismatchException("no info for schema of " + kind + " found");
-    }
-    else
-    {
-      int currentVersion = getCurrentSchemaVersion(kind);
-      ArrayList < String > secondSchema = new ArrayList < String > ();
-      secondSchema.addAll(schema);
-      for (int i = 0; i < secondSchema.size(); i++)
-      {
-        String s = secondSchema.get(i);
-        if (!s.equals("?id"))
-        {
-          secondSchema.set(i, s + "2");
-        }
-      }
-      value = "legacy" + kind + currentVersion + "(?id,?ts):-" + kind + currentVersion + "(" + schemaToString(schema) + ",?ts)," + kind + currentVersion + "(" + schemaToString(secondSchema) + ",?nts), ?ts < ?nts.\u005cn" + "latest" + kind + currentVersion + "(?id,?ts):-" + kind + currentVersion + "(" + schemaToString(schema) + ",?ts), not legacy" + kind + currentVersion + "(?id,?ts).\u005cn";
-      return value;
-    }
-  }
-
-  private static String getTimestamp() throws IOException
-  {
-    //int time = db.getLastTimestamp();
-    // return time + 1;
-    return "?ts";
-  }
-
-  public ArrayList < String > getSchema(String kind, int schemaNumber) throws InputMismatchException, IOException
-  {
-    Schema currentSchema = db.getSchema(kind, schemaNumber);
-    if (currentSchema != null) return currentSchema.getAttributes();
-    else
-    {
-      throw new InputMismatchException("no info for schema of " + kind + " found");
+      db.saveCurrentSchema(kind, newSchema);
     }
   }
 
@@ -180,17 +154,9 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
     }
   }
 
-  private static boolean propertyExists(String kind, String value) throws InputMismatchException, IOException
+  private static boolean propertyExists(Schema schema, String value) throws InputMismatchException, IOException
   {
-    ArrayList < String > currentSchema = getCurrentSchema(kind);
-    if (currentSchema == null)
-    {
-      throw new InputMismatchException("no info for schema of " + kind + " found");
-    }
-    else
-    {
-      return currentSchema.contains("?" + value);
-    }
+    return schema.getAttributes().contains("?" + value);
   }
 
   final public String getDatalogRules(Database db) throws ParseException, InputMismatchException, IOException, parserRuletoJava.ParseException {
@@ -215,6 +181,8 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
   final public String start() throws ParseException, InputMismatchException, IOException, parserRuletoJava.ParseException {
   String value = null;
   rules = new ArrayList < Rule > ();
+  currentSchemaFrom = null;
+  currentSchemaTo = null;
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case get:
       value = get();
@@ -263,27 +231,31 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
     }
     if (!propertyToken.toString().equals("id")) {if (true) throw new InputMismatchException("only id for get");}
     String kind = kindToken.toString();
-    String id;
+    String idTemp;
     if (idToken.kind == string)
     {
-      id = idToken.toString();
-      id = id.substring(1, id.length() - 1);
-      id = "'" + id + "'";
+      idTemp = idToken.toString();
+      idTemp = idTemp.substring(1, idTemp.length() - 1);
+      idTemp = "'" + idTemp + "'";
     }
-    else id = idToken.toString();
+    else
+    {
+      idTemp = idToken.toString();
+      id = Integer.parseInt(idToken.toString());
+    }
     kindStr = kind;
-    idStr = id;
-    ArrayList < String > schema = getCurrentSchema(kind);
-    if (schema == null)
+    idStr = idTemp;
+    getSchemaFromDB(kind, "");
+    if (currentSchemaFrom == null)
     {
       {if (true) throw new InputMismatchException("no info for schema of " + kind + " found");}
     }
-    int currentVersion = getCurrentSchemaVersion(kind);
-    String residualRules = getResidualRules(kind);
-    String headRule = "get" + kind + currentVersion + "(" + schemaToString(schema) + ",?ts):-" + kind + currentVersion + "(" + schemaToString(schema) + ",?ts), latest" + kind + currentVersion + "(?id,?ts),?id=" + id + ".\u005cn";
-    rules.addAll((new ParserRuleToJava(new StringReader(residualRules))).start());
+    ArrayList < String > schema = currentSchemaFrom.getAttributes();
+    int currentVersion = currentSchemaFrom.getVersion();
+    String headRule = "get" + kind + currentVersion + "(" + schemaToString(schema) + ",?ts):-$"
+        + kind + currentVersion + "(" + schemaToString(schema) + ",?ts),?id=" + id + ".\u005cn";
     rules.addAll((new ParserRuleToJava(new StringReader(headRule))).parseHeadRules());
-    {if (true) return residualRules + headRule;}
+    {if (true) return headRule;}
     throw new Error("Missing return statement in function");
   }
 
@@ -321,24 +293,24 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
     }
     else propertyValue = valueToken.toString();
     String kind = kindToken.toString();
-    ArrayList < String > currentSchema = getCurrentSchema(kind);
-    if (currentSchema == null)
+    getSchemaFromDB(kind, "");
+    if (currentSchemaFrom == null)
     {
       {if (true) throw new InputMismatchException("no info for schema of " + kind + " found");}
     }
-    if (propertyExists(kind, propertyName))
+    if (propertyExists(currentSchemaFrom, propertyName))
     {
       {if (true) throw new InputMismatchException("attribute for " + kind + " already exists");}
     }
+    ArrayList < String > currentSchema = currentSchemaFrom.getAttributes();
     ArrayList < String > newSchema = getNewSchemaAdd(kind, "?" + propertyName);
-    int currentSchemaVersion = getCurrentSchemaVersion(kind);
+    int currentSchemaVersion = currentSchemaFrom.getVersion();
     int newSchemaVersion = currentSchemaVersion + 1;
-    String residualRules = getResidualRules(kind);
-    String headRules = kind + newSchemaVersion + "(" + schemaToString(getNewSchemaAdd(kind, propertyValue)) + ",?ts" + /*getTimestamp() + */"):-" + kind + currentSchemaVersion + "(" + schemaToString(currentSchema) + ",?ts), latest" + kind + currentSchemaVersion + "(?id,?ts).\u005cn";
+    String headRules = kind + newSchemaVersion + "(" + schemaToString(getNewSchemaAdd(kind, propertyValue)) + ",?ts):-$"
+        + kind + currentSchemaVersion + "(" + schemaToString(currentSchema) + ",?ts).\u005cn";
     saveCurrentSchema(kind, newSchema);
-    rules.addAll((new ParserRuleToJava(new StringReader(residualRules))).start());
     rules.addAll((new ParserRuleToJava(new StringReader(headRules))).parseHeadRules());
-    {if (true) return residualRules + headRules;}
+    {if (true) return headRules;}
     throw new Error("Missing return statement in function");
   }
 
@@ -351,24 +323,23 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
     propertyToken = jj_consume_token(name);
     String propertyName = propertyToken.toString();
     String kind = kindToken.toString();
-    ArrayList < String > schema = getCurrentSchema(kind);
-    if (schema == null)
+    getSchemaFromDB(kind, "");
+    if (currentSchemaFrom == null)
     {
       {if (true) throw new InputMismatchException("no info for schema of " + kind + " found");}
     }
-    if (!propertyExists(kind, propertyName))
+    if (!propertyExists(currentSchemaFrom, propertyName))
     {
       {if (true) throw new InputMismatchException("attribute for " + kind + " does not exist");}
     }
     ArrayList < String > newSchema = getNewSchemaDelete(kind, propertyName);
-    int currentVersion = getCurrentSchemaVersion(kind);
+    int currentVersion = currentSchemaFrom.getVersion();
     int newVersion = currentVersion + 1;
-    String residualRules = getResidualRules(kind);
-    String headRules = kind + newVersion + "(" + schemaToString(newSchema) + ",?ts" + /*getTimestamp() + */"):-" + kind + currentVersion + "(" + schemaToString(schema) + ",?ts), latest" + kind + currentVersion + "(?id,?ts).\u005cn";
+    String headRules = kind + newVersion + "(" + schemaToString(newSchema) + ",?ts):-$"
+        + kind + currentVersion + "(" + schemaToString(currentSchemaFrom.getAttributes()) + ",?ts).\u005cn";
     saveCurrentSchema(kind, newSchema);
-    rules.addAll((new ParserRuleToJava(new StringReader(residualRules))).start());
     rules.addAll((new ParserRuleToJava(new StringReader(headRules))).parseHeadRules());
-    {if (true) return residualRules + headRules;}
+    {if (true) return headRules;}
     throw new Error("Missing return statement in function");
   }
 
@@ -376,8 +347,10 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
   Token kindFromToken = null;
   Token kindToToken = null;
   Token propertyToken = null;
-  Token conditionFromToken = null;
-  Token conditionToToken = null;
+  Token condKind1Token = null;
+  Token condKind2Token = null;
+  Token condProp1Token = null;
+  Token condProp2Token = null;
     jj_consume_token(copy);
     kindFromToken = jj_consume_token(name);
     jj_consume_token(16);
@@ -385,61 +358,82 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
     jj_consume_token(18);
     kindToToken = jj_consume_token(name);
     jj_consume_token(19);
-    kindFromToken = jj_consume_token(name);
+    condKind1Token = jj_consume_token(name);
     jj_consume_token(16);
-    conditionFromToken = jj_consume_token(name);
+    condProp1Token = jj_consume_token(name);
     jj_consume_token(17);
-    kindToToken = jj_consume_token(name);
+    condKind2Token = jj_consume_token(name);
     jj_consume_token(16);
-    conditionToToken = jj_consume_token(name);
+    condProp2Token = jj_consume_token(name);
     String kindFrom = kindFromToken.toString();
     String kindTo = kindToToken.toString();
     String attribute = propertyToken.toString();
-    String conditionFrom = conditionFromToken.toString();
-    String conditionTo = conditionToToken.toString();
-    String residualRules = getResidualRules(kindFrom) + getResidualRules(kindTo);
-    ArrayList < String > schemaFrom = getCurrentSchema(kindFrom);
-    ArrayList < String > schemaTo = getCurrentSchema(kindTo);
-    if (schemaFrom == null)
+    getSchemaFromDB(kindFrom, kindTo);
+    if (currentSchemaFrom == null)
     {
       {if (true) throw new InputMismatchException("no info for schema of " + kindFrom + " found");}
     }
-    if (schemaTo == null)
+    if (currentSchemaTo == null)
     {
       {if (true) throw new InputMismatchException("no info for schema of " + kindTo + " found");}
     }
-    if (!propertyExists(kindFrom, attribute))
+    if (!propertyExists(currentSchemaFrom, attribute))
     {
       {if (true) throw new InputMismatchException("attribute: " + attribute + " for " + kindFrom + " does not exist");}
     }
-    if (!propertyExists(kindFrom, conditionFrom))
+    String condKind1 = condKind1Token.toString();
+    String condKind2 = condKind2Token.toString();
+    String condProp1 = condProp1Token.toString();
+    String condProp2 = condProp2Token.toString();
+    String conditionFrom = "";
+    String conditionTo = "";
+    if (condKind1.equals(kindTo)) conditionTo = condProp1;
+    else if (condKind1.equals(kindFrom)) conditionFrom = condProp1;
+    else
+    {
+      {if (true) throw new InputMismatchException("No matching source for condition " + condKind1 + "." + condProp1);}
+    }
+    if (condKind2.equals(kindFrom)) conditionFrom = condProp2;
+    else if (condKind2.equals(kindTo)) conditionTo = condProp2;
+    else
+    {
+      {if (true) throw new InputMismatchException("No matching source for condition " + condKind2 + "." + condProp2);}
+    }
+    if (!propertyExists(currentSchemaFrom, conditionFrom))
     {
       {if (true) throw new InputMismatchException("attribute: " + conditionFrom + " for " + kindFrom + " does not exist");}
     }
-    if (!propertyExists(kindTo, conditionTo))
+    if (!propertyExists(currentSchemaTo, conditionTo))
     {
       {if (true) throw new InputMismatchException("attribute: " + conditionTo + " for " + kindTo + " does not exist");}
     }
-    if (propertyExists(kindTo, attribute))
+    if (propertyExists(currentSchemaTo, attribute))
     {
       {if (true) throw new InputMismatchException("attribute: " + attribute + " for " + kindTo + " already exists");}
     }
     ArrayList < String > schemaToNew = getNewSchemaAdd(kindTo, "?" + attribute);
     ArrayList < String > schemaToNew2 = getNewSchemaAdd(kindTo, "null");
-    int currentSchemaVersionTo = getCurrentSchemaVersion(kindTo);
-    int currentSchemaVersionFrom = getCurrentSchemaVersion(kindFrom);
-    int newSchemaVersionTo = currentSchemaVersionTo + 1;
     saveCurrentSchema(kindTo, schemaToNew);
+    saveCurrentSchema(kindFrom, currentSchemaFrom.getAttributes());
+    int currentSchemaVersionTo = currentSchemaTo.getVersion();
+    int currentSchemaVersionFrom = currentSchemaFrom.getVersion();
+    int newSchemaVersionTo = currentSchemaVersionTo + 1;
+    int newSchemaVersionFrom = currentSchemaVersionFrom + 1;
     schemaToNew = addAttributeNr(schemaToNew, 1, "?" + attribute);
     schemaToNew2 = addAttributeNr(schemaToNew2, 1, "");
-    schemaTo = addAttributeNr(schemaTo, 1, "");
-    schemaFrom = addAttributeNr(schemaFrom, 2, "");
+    ArrayList<String > schemaTo = addAttributeNr(currentSchemaTo.getAttributes(), 1, "");
+   ArrayList<String > schemaFrom = addAttributeNr(currentSchemaFrom.getAttributes(), 2, "");
     String condition = "?" + conditionFrom + "2 = " + "?" + conditionTo + "1";
-    String headRules = kindTo + newSchemaVersionTo + "(" + schemaToString(schemaToNew) + ",?ts1" + /*getTimestamp() + */"):-" + kindTo + currentSchemaVersionTo + "(" + schemaToString(schemaTo) + ",?ts1),latest" + kindTo + currentSchemaVersionTo + "(?id1,?ts1)," + kindFrom + currentSchemaVersionFrom + "(" + schemaToString(schemaFrom) + ",?ts2), latest" + kindFrom + currentSchemaVersionFrom + "(?id2,?ts2)," + condition + ".\u005cn";
-    headRules = headRules + kindTo + newSchemaVersionTo + "(" + schemaToString(schemaToNew2) + ",?ts1" + /*getTimestamp() + */"):-" + kindTo + currentSchemaVersionTo + "(" + schemaToString(schemaTo) + ",?ts1),latest" + kindTo + currentSchemaVersionTo + "(?id1,?ts1)," + " not " + kindFrom + currentSchemaVersionFrom + "(" + schemaToString(schemaFrom) + ",?ts2)," + condition + ".\u005cn";
-    rules.addAll((new ParserRuleToJava(new StringReader(residualRules))).start());
+    String headRules = kindTo + newSchemaVersionTo + "(" + schemaToString(schemaToNew) + ",?ts1):-$"
+        + kindTo + currentSchemaVersionTo + "(" + schemaToString(schemaTo) + ",?ts1),$"
+                + kindFrom + currentSchemaVersionFrom + "(" + schemaToString(schemaFrom) + ",?ts2)," + condition + ".\u005cn";
+    headRules = headRules + kindTo + newSchemaVersionTo + "(" + schemaToString(schemaToNew2) + ",?ts1):-$"
+        + kindTo + currentSchemaVersionTo + "(" + schemaToString(schemaTo) + ",?ts1)," +
+        " not $" + kindFrom + currentSchemaVersionFrom + "(" + schemaToString(schemaFrom) + ",?ts2)," + condition + ".\u005cn";
+    headRules = headRules + kindFrom + newSchemaVersionFrom + "(" + schemaToString(schemaFrom) + ",?ts2):-$"
+        + kindFrom + currentSchemaVersionFrom + "(" + schemaToString(schemaFrom) + ",?ts2).\u005cn";
     rules.addAll((new ParserRuleToJava(new StringReader(headRules))).parseHeadRules());
-    {if (true) return residualRules + headRules;}
+    {if (true) return headRules;}
     throw new Error("Missing return statement in function");
   }
 
@@ -447,8 +441,10 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
   Token kindFromToken = null;
   Token kindToToken = null;
   Token propertyToken = null;
-  Token conditionFromToken = null;
-  Token conditionToToken = null;
+  Token condKind1Token = null;
+  Token condKind2Token = null;
+  Token condProp1Token = null;
+  Token condProp2Token = null;
     jj_consume_token(move);
     kindFromToken = jj_consume_token(name);
     jj_consume_token(16);
@@ -456,66 +452,89 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
     jj_consume_token(18);
     kindToToken = jj_consume_token(name);
     jj_consume_token(19);
-    kindFromToken = jj_consume_token(name);
+    condKind1Token = jj_consume_token(name);
     jj_consume_token(16);
-    conditionFromToken = jj_consume_token(name);
+    condProp1Token = jj_consume_token(name);
     jj_consume_token(17);
-    kindToToken = jj_consume_token(name);
+    condKind2Token = jj_consume_token(name);
     jj_consume_token(16);
-    conditionToToken = jj_consume_token(name);
+    condProp2Token = jj_consume_token(name);
     String kindFrom = kindFromToken.toString();
     String kindTo = kindToToken.toString();
     String attribute = propertyToken.toString();
-    String conditionFrom = conditionFromToken.toString();
-    String conditionTo = conditionToToken.toString();
-    String residualRules = getResidualRules(kindFrom) + getResidualRules(kindTo);
-    ArrayList < String > schemaFrom = getCurrentSchema(kindFrom);
-    ArrayList < String > schemaTo = getCurrentSchema(kindTo);
-    if (schemaFrom == null)
+    getSchemaFromDB(kindFrom, kindTo);
+
+    if (currentSchemaFrom == null)
     {
       {if (true) throw new InputMismatchException("no info for schema of " + kindFrom + " found");}
     }
-    if (schemaTo == null)
+    if (currentSchemaTo == null)
     {
       {if (true) throw new InputMismatchException("no info for schema of " + kindTo + " found");}
     }
-    if (!propertyExists(kindFrom, attribute))
+    if (!propertyExists(currentSchemaFrom, attribute))
     {
       {if (true) throw new InputMismatchException("attribute: " + attribute + " for " + kindFrom + " does not exist");}
     }
-    if (!propertyExists(kindFrom, conditionFrom))
+    String condKind1 = condKind1Token.toString();
+    String condKind2 = condKind2Token.toString();
+    String condProp1 = condProp1Token.toString();
+    String condProp2 = condProp2Token.toString();
+    String conditionFrom = "";
+    String conditionTo = "";
+    if (condKind1.equals(kindTo)) conditionTo = condProp1;
+    else if (condKind1.equals(kindFrom)) conditionFrom = condProp1;
+    else
+    {
+      {if (true) throw new InputMismatchException("No matching source for condition " + condKind1 + "." + condProp1);}
+    }
+    if (condKind2.equals(kindFrom))
+        conditionFrom = condProp2;
+    else if (condKind2.equals(kindTo))
+        conditionTo = condProp2;
+    else
+    {
+      {if (true) throw new InputMismatchException("No matching source for condition " + condKind2 + "." + condProp2);}
+    }
+
+    if (!propertyExists(currentSchemaFrom, conditionFrom))
     {
       {if (true) throw new InputMismatchException("attribute: " + conditionFrom + " for " + kindFrom + " does not exist");}
     }
-    if (!propertyExists(kindTo, conditionTo))
+    if (!propertyExists(currentSchemaTo, conditionTo))
     {
       {if (true) throw new InputMismatchException("attribute: " + conditionTo + " for " + kindTo + " does not exist");}
     }
-    if (propertyExists(kindTo, attribute))
+    if (propertyExists(currentSchemaTo, attribute))
     {
       {if (true) throw new InputMismatchException("attribute: " + attribute + " for " + kindTo + " already exists");}
     }
     ArrayList < String > schemaFromNew = getNewSchemaDelete(kindFrom, attribute);
     ArrayList < String > schemaToNew = getNewSchemaAdd(kindTo, "?" + attribute);
     ArrayList < String > schemaToNew2 = getNewSchemaAdd(kindTo, "null");
-    int currentSchemaVersionFrom = getCurrentSchemaVersion(kindFrom);
-    int newSchemaVersionFrom = currentSchemaVersionFrom + 1;
-    int currentSchemaVersionTo = getCurrentSchemaVersion(kindTo);
-    int newSchemaVersionTo = currentSchemaVersionTo + 1;
+
     saveCurrentSchema(kindFrom, schemaFromNew);
     saveCurrentSchema(kindTo, schemaToNew);
+    int currentSchemaVersionFrom = currentSchemaFrom.getVersion();
+    int currentSchemaVersionTo =currentSchemaTo.getVersion();
+    int newSchemaVersionFrom = currentSchemaVersionFrom + 1;
+    int newSchemaVersionTo = currentSchemaVersionTo + 1;
     schemaToNew = addAttributeNr(schemaToNew, 1, "?" + attribute);
     schemaToNew2 = addAttributeNr(schemaToNew2, 1, "");
-    schemaTo = addAttributeNr(schemaTo, 1, "");
-    schemaFrom = addAttributeNr(schemaFrom, 2, "");
+    ArrayList<String > schemaTo = addAttributeNr(currentSchemaTo.getAttributes(), 1, "");
+    ArrayList<String > schemaFrom = addAttributeNr(currentSchemaFrom.getAttributes(), 2, "");
     schemaFromNew = addAttributeNr(schemaFromNew, 2, "");
     String condition = "?" + conditionFrom + "2 = " + "?" + conditionTo + "1";
-    String headRules = kindTo + newSchemaVersionTo + "(" + schemaToString(schemaToNew) + ",?ts1" + /*getTimestamp() + */"):-" + kindTo + currentSchemaVersionTo + "(" + schemaToString(schemaTo) + ",?ts1),latest" + kindTo + currentSchemaVersionTo + "(?id1,?ts1)," + kindFrom + currentSchemaVersionFrom + "(" + schemaToString(schemaFrom) + ",?ts2), latest" + kindFrom + currentSchemaVersionFrom + "(?id2,?ts2)," + condition + ".\u005cn";
-    headRules = headRules + kindTo + newSchemaVersionTo + "(" + schemaToString(schemaToNew2) + ",?ts1" + /*getTimestamp() + */"):-" + kindTo + currentSchemaVersionTo + "(" + schemaToString(schemaTo) + ",?ts1),latest" + kindTo + currentSchemaVersionTo + "(?id1,?ts1)," + " not " + kindFrom + currentSchemaVersionFrom + "(" + schemaToString(schemaFrom) + ",?ts2)," + condition + ".\u005cn";
-    headRules = headRules + kindFrom + newSchemaVersionFrom + "(" + schemaToString(schemaFromNew) + ",?ts2" + /*getTimestamp() + */"):-" + kindFrom + currentSchemaVersionFrom + "(" + schemaToString(schemaFrom) + ",?ts2), latest" + kindFrom + currentSchemaVersionFrom + "(?id2,?ts2).\u005cn";
-    rules.addAll((new ParserRuleToJava(new StringReader(residualRules))).start());
+    String headRules = kindTo + newSchemaVersionTo + "(" + schemaToString(schemaToNew) + ",?ts1):-$"
+        + kindTo + currentSchemaVersionTo + "(" + schemaToString(schemaTo) + ",?ts1),$"
+        + kindFrom + currentSchemaVersionFrom + "(" + schemaToString(schemaFrom) + ",?ts2)," + condition + ".\u005cn";
+    headRules = headRules + kindTo + newSchemaVersionTo + "(" + schemaToString(schemaToNew2) + ",?ts1):-$"
+        + kindTo + currentSchemaVersionTo + "(" + schemaToString(schemaTo) + ",?ts1)," +
+        " not $" + kindFrom + currentSchemaVersionFrom + "(" + schemaToString(schemaFrom) + ",?ts2)," + condition + ".\u005cn";
+    headRules = headRules + kindFrom + newSchemaVersionFrom + "(" + schemaToString(schemaFromNew) + ",?ts2):-$"
+        + kindFrom + currentSchemaVersionFrom + "(" + schemaToString(schemaFrom) + ",?ts2).\u005cn";
     rules.addAll((new ParserRuleToJava(new StringReader(headRules))).parseHeadRules());
-    {if (true) return residualRules + headRules;}
+    {if (true) return headRules;}
     throw new Error("Missing return statement in function");
   }
 

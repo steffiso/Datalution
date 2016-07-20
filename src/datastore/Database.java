@@ -3,17 +3,10 @@ package datastore;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.InputMismatchException;
 import java.util.List;
 import java.util.Map;
-
-import javax.cache.Cache;
-import javax.cache.CacheException;
-import javax.cache.CacheFactory;
-import javax.cache.CacheManager;
-import javax.servlet.ServletException;
 
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
@@ -22,189 +15,197 @@ import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.FetchOptions;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
-import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
-import com.google.appengine.api.datastore.Query.Filter;
-import com.google.appengine.api.datastore.Query.FilterOperator;
 import com.google.appengine.api.datastore.Query.SortDirection;
-import com.google.appengine.api.datastore.Transaction;
 import com.google.appengine.api.memcache.MemcacheService;
 import com.google.appengine.api.memcache.MemcacheService.IdentifiableValue;
 import com.google.appengine.api.memcache.MemcacheServiceFactory;
 
 import parserPutToDatalog.ParseException;
 import parserPutToDatalog.ParserForPut;
-import parserRuletoJava.ParserRuleToJava;
-
-import static com.googlecode.objectify.ObjectifyService.ofy;
 
 public class Database {
 
 	DatastoreService ds;
 	
 	public Database(){
-		OfyService.ofy();
 		ds = DatastoreServiceFactory.getDatastoreService();
 	}
 	public Database(DatastoreService ds) {
-		OfyService.ofy();
 		this.ds =ds;
 	}
 	
 	public void addStartEntities(){
-		
-//		Entity schemaPlayer = new Entity("Schema", "Player");
-//		Entity schemaMission = new Entity("Schema", "Mission");
-//		ds.put(schemaPlayer);
-//		ds.put(schemaMission);
 		Entity schemaPlayer1 = new Entity("SchemaPlayer",1, KeyFactory.createKey("Schema", "Player"));
-		schemaPlayer1.setProperty("value", "?id,?name");
+		schemaPlayer1.setProperty("value", "?id,?name,?points");
 		schemaPlayer1.setProperty("kind", "Player");
-		schemaPlayer1.setProperty("version", "1");
-		schemaPlayer1.setProperty("ts", "1");
+		schemaPlayer1.setProperty("version", 1);
+		schemaPlayer1.setProperty("ts", 1);
 		
 		Entity schemaMission1 = new Entity("SchemaMission",1, KeyFactory.createKey("Schema", "Mission"));
-		//new Entity(new KeyFactory.Builder("Schema","Mission").addChild("SchemaMission",1).getKey());
 		schemaMission1.setProperty("value", "?id,?title,?pid");
 		schemaMission1.setProperty("kind", "Mission");
-		schemaMission1.setProperty("version", "1");
-		schemaMission1.setProperty("ts", "1");
+		schemaMission1.setProperty("version", 1);
+		schemaMission1.setProperty("ts", 1);
 		
-		String id = "1";
-		//Entity player = new Entity(KeyFactory.createKey("Player",id));
-		Entity player1 = new Entity("Player1",id + "1", KeyFactory.createKey("Player", id));
-		//		new Entity(new KeyFactory.Builder("Player",id).addChild("Player1",id + "1").getKey());
+		Entity player1 = new Entity("Player1","11", KeyFactory.createKey("Player", 1));
 		player1.setProperty("id", 1);
 		player1.setProperty("name", "Lisa");
+		player1.setProperty("points", 150);
 		player1.setProperty("ts", 1);
 		
-		Entity player2 = new Entity("Player1",id + "2", KeyFactory.createKey("Player", id));
+		Entity player2 = new Entity("Player1","12", KeyFactory.createKey("Player", 1));
 		player2.setProperty("id", 1);
 		player2.setProperty("name", "Lisa S.");
+		player2.setProperty("points", 150);
 		player2.setProperty("ts", 2);
 		
-		String id2 = "1";
-		Entity mission = new Entity("Mission1",id2 + "1", KeyFactory.createKey("Mission", id2));
-		mission.setProperty("id", 1);
-		mission.setProperty("title", "go to library");
-		mission.setProperty("pid", 1);
-		mission.setProperty("ts", 1);
+		Entity player3 = new Entity("Player1","21", KeyFactory.createKey("Player", 2));
+		player3.setProperty("id", 2);
+		player3.setProperty("name", "Bart");
+		player3.setProperty("points", 100);
+		player3.setProperty("ts", 1);
+		
+		Entity player4 = new Entity("Player1","31", KeyFactory.createKey("Player", 3));
+		player4.setProperty("id", 3);
+		player4.setProperty("name", "Homer");
+		player4.setProperty("points", 100);
+		player4.setProperty("ts", 1);
+		
+		Entity mission1 = new Entity("Mission1","11", KeyFactory.createKey("Mission", 1));
+		mission1.setProperty("id", 1);
+		mission1.setProperty("title", "go to library");
+		mission1.setProperty("pid", 1);
+		mission1.setProperty("ts", 1);
+		
+		Entity mission2 = new Entity("Mission1","21", KeyFactory.createKey("Mission", 2));
+		mission2.setProperty("id", 2);
+		mission2.setProperty("title", "go to work");
+		mission2.setProperty("pid", 20);
+		mission2.setProperty("ts", 1);
+		
+		Entity mission3 = new Entity("Mission1","31", KeyFactory.createKey("Mission", 3));
+		mission3.setProperty("id", 3);
+		mission3.setProperty("title", "visit Moe");
+		mission3.setProperty("pid", 3);
+		mission3.setProperty("ts", 1);
 		
 		ds.put(schemaPlayer1);
 		ds.put(schemaMission1);
-		//ds.put(player);
 		ds.put(player1);
 		ds.put(player2);
-		ds.put(mission);
-		
+		ds.put(player3);
+		ds.put(player4);
+		ds.put(mission1);
+		ds.put(mission2);
+		ds.put(mission3);
+
 	}
 
-	// return all rules
-	public ArrayList<datastore.Rule> getRules() {
-//		MemcacheService syncCache = MemcacheServiceFactory.getMemcacheService();
-//
-//        String rules = (String) syncCache.get("Rules");       
-		
-		//Entity rulesEntity = null;
+	public ArrayList<datastore.Rule> getAllRulesFromDatastore(){
+
 		List<Entity> rulesEntity = null;
-//		try {
-			Query q = new Query().setAncestor(KeyFactory.createKey("Rules", 1));
-			rulesEntity = ds.prepare(q).asList(FetchOptions.Builder.withDefaults());
-			//rulesEntity = ds.get(KeyFactory.createKey("Rules",1));
-//		} catch (EntityNotFoundException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-		if(rulesEntity!=null){
+		Query q = new Query().setAncestor(KeyFactory.createKey("Rules", 1));
+		rulesEntity = ds.prepare(q).asList(FetchOptions.Builder.withDefaults());
+			
+		if (rulesEntity != null) {
 			String rules = "";
 			for(Entity e: rulesEntity) 
 				rules = rules + (String) e.getProperty("value");
+			
 			ArrayList<Rule> rulesList = new ArrayList<Rule>();
 			
-			if (!rules.equals("")){
-        	 ArrayList<String> rulesStringList = new ArrayList<String>(Arrays.asList(rules.split("\n")));
-             for (String rule: rulesStringList){
-             	Rule r = new Rule();
-             	r.setValue(rule);
-             	r.setTimestamp(new Date());
-             	if (!rule.startsWith("latest") && !rule.startsWith("legacy")){
-             		r.setHead(true);
-             	}
-             	else {
-                 	r.setHead(false);        		
-             	}
-             	rulesList.add(r);
-             }
-        }
+			if (!rules.equals("")) {
+				ArrayList<String> rulesStringList = new ArrayList<String>(Arrays.asList(rules.split("\n")));
+				for (String rule: rulesStringList){
+					Rule r = new Rule();
+					r.setValue(rule);
+					rulesList.add(r);
+				}
+			}
 		
-        return rulesList;		}
-		else return null;
+			return rulesList;		
+        }
+		else 
+			return null;
 	}
 	
-	public void addRules(String newRules) throws ServletException{
-		//toDO: split rules and save only headrules
-		
-//		MemcacheService syncCache = MemcacheServiceFactory.getMemcacheService();
-//
-//        // Write this value to cache using getIdentifiable and putIfUntouched.
-//        for (long delayMs = 1; delayMs < 1000; delayMs *= 2) {
-//          IdentifiableValue oldRules = syncCache.getIdentifiable("Rules");
-//          if (oldRules == null) {
-//            // Key doesn't exist. We can safely put it in cache.
-//            syncCache.put("Rules", newRules);
-//            break;
-//          } else if (syncCache.putIfUntouched("Rules", oldRules, oldRules + newRules)) {
-//            // newValue has been successfully put into cache.
-//            break;
-//          } else {
-//            // Some other client changed the value since oldValue was retrieved.
-//            // Wait a while before trying again, waiting longer on successive loops.
-//            try {
-//              Thread.sleep(delayMs);
-//            } catch (InterruptedException e) {
-//              throw new ServletException("Error when sleeping", e);
-//            }
-//          }
-//        }  
-		
-//		List<Entity> rulesEntity = null;
-//		String rules = "";
-//		try {
-//			Query q = new Query().setAncestor(KeyFactory.createKey("Rules", 1));
-//			rulesEntity = ds.prepare(q).asList(FetchOptions.Builder.withDefaults());
-//		} catch (EntityNotFoundException e) {
-//			// TODO Auto-generated catch block
-//		}
-//		
-//
-//		ArrayList<String> ruleslist = new ArrayList<String>(Arrays.asList(newRules.split("\n")));
-//		newRules = "";
-//		for (String s: ruleslist){
-//			if (!s.startsWith("legacy") && !s.startsWith("latest")){
-//				newRules = newRules + s + "\n";
-//			}
-//		}
-//		rules = rules + newRules;
-		Entity e = new Entity("Rule", KeyFactory.createKey("Rules",1));
-		e.setProperty("value", newRules);
-		ds.put(e);
-		
-		
+	// input key, e.g. "Player2"
+	// return specific rules, e.g. all rules starting with "Player2"
+	public ArrayList<datastore.Rule> getRulesFromMemcache(String key) {
+		MemcacheService syncCache = MemcacheServiceFactory.getMemcacheService();
+		ArrayList<Rule> rulesList = new ArrayList<Rule>();
+        String rules = "";
+        
+        rules = (String) syncCache.get("Rules" + key);
+		if (!rules.equals("")){
+			// rule with given key exists in memcache
+			ArrayList<String> rulesStringList = new ArrayList<String>(Arrays.asList(rules.split("\n")));
+			for (String rule: rulesStringList){
+				Rule r = new Rule();
+				r.setValue(rule);
+				rulesList.add(r);
+			}
+		}
+		else {
+			// put rule from datastore in memcache
+			Map<String,String> map = new HashMap<String,String>();
+			String value = "";
+			Query q = new Query("Rules" + key).setAncestor(KeyFactory.createKey("Rules", 1));
+			List<Entity> rulesEntity = ds.prepare(q).asList(FetchOptions.Builder.withDefaults());
+			for (Entity e : rulesEntity){
+				value = value + e.getProperty("value") + "\n";
+			}
+			map.put("Rules" + key, value);
+			addRules(map);
+		}
+		return rulesList;
+	}
+	
+	// input map example: key="RulesPlayer2", value="Player2(?id,?name,?score,?ts):-$Player1(?id,?name,?ts)."
+	// add rules from inputMap to datastore and memcache
+	public void addRules(Map<String, String> newRules){
+		MemcacheService syncCache = MemcacheServiceFactory.getMemcacheService();
+
+		for (Map.Entry<String, String> entry : newRules.entrySet()) {
+			String rulesKey = entry.getKey();
+			String rulesValue = entry.getValue();
+			
+			Entity ruleEntity = new Entity(rulesKey, KeyFactory.createKey("Rules",1));
+			ruleEntity.setProperty("value", rulesValue);
+			ds.put(ruleEntity);	
+			
+			IdentifiableValue oldRules = syncCache.getIdentifiable(rulesKey);
+	        if (oldRules == null) {
+		        // Key doesn't exist. We can safely put it in cache.
+		        syncCache.put(rulesKey, rulesValue);
+	        } 
+	        
+	        // no concurrency problem for admin ??!!	          
+		}			
 	}
 
 	// return the schema for kind and version
 	public Schema getSchema(String inputKind, int inputVersion){
-		Query q = new Query ("Schema"+inputKind).setAncestor(KeyFactory.createKey("Schema",inputKind))
-				.addFilter("version", FilterOperator.EQUAL, inputVersion);
+		ds = DatastoreServiceFactory.getDatastoreService();
+		Key schemaKey = KeyFactory.createKey(KeyFactory.createKey("Schema", inputKind), "Schema" + inputKind, inputVersion);
 		
-		List<Entity> schemaList = ds.prepare(q).asList(FetchOptions.Builder.withDefaults().limit(1));
-		Entity schema = schemaList.get(0);
-		Schema latestSchema = new Schema();
-		latestSchema.setAttributesString(schema.getProperty("value").toString());
-		latestSchema.setKind(schema.getProperty("kind").toString());
-		latestSchema.setVersion(Integer.parseInt(schema.getProperty("version").toString()));
-		latestSchema.setTimestamp(Integer.parseInt(schema.getProperty("ts").toString()));
-		return latestSchema;
+		Entity e = null;
+		try {
+			e = ds.get(schemaKey);
+		} catch (EntityNotFoundException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		if (e != null){
+			Schema schema = new Schema();
+			schema.setAttributesString(e.getProperty("value").toString());
+			schema.setKind(e.getProperty("kind").toString());
+			schema.setVersion(Integer.parseInt(e.getProperty("version").toString()));
+			schema.setTimestamp(Integer.parseInt(e.getProperty("ts").toString()));
+			return schema;			
+		}
+		else return null;
 	}
 
 	// returns the latest schema version number for the given kind
@@ -219,58 +220,78 @@ public class Database {
 	}
 
 	// returns the latest schema for input kind
-	// output: "?name,?score,?points"
 	public Schema getLatestSchema(String kind){
-		Query q = new Query ("Schema"+kind).setAncestor(KeyFactory.createKey("Schema",
-				kind));
-		List<Entity> schemaList = ds.prepare(q).asList(FetchOptions.Builder.withDefaults());
-		Entity schema = schemaList.get(schemaList.size()-1);
+		ds = DatastoreServiceFactory.getDatastoreService();
 		Schema latestSchema = new Schema();
-		latestSchema.setAttributesString(schema.getProperty("value").toString());
-		latestSchema.setKind(schema.getProperty("kind").toString());
-		latestSchema.setVersion(Integer.parseInt(schema.getProperty("version").toString()));
-		latestSchema.setTimestamp(Integer.parseInt(schema.getProperty("ts").toString()));
-		return latestSchema;
-	}
-
-	public Entity getLatestEntity(String kind, String id){		
-		Schema latestSchema = getLatestSchema(kind.replaceAll("\\d", ""));
-		int version = latestSchema.getVersion();
-		Query kindQuery = new Query(kind).setAncestor(KeyFactory.createKey(kind.replaceAll("\\d", ""),
-						id));
-		List<Entity> latestEntity = ds.prepare(kindQuery).asList(FetchOptions.Builder.withDefaults());
-		Entity e = null;
-		if (!latestEntity.isEmpty())
-			e = latestEntity.get(latestEntity.size()-1);
 		
-		return e;
+		Query q = new Query ("Schema"+kind).setAncestor(KeyFactory.createKey("Schema", kind))
+			.addSort("ts", SortDirection.DESCENDING);	
+		List<Entity> schema = ds.prepare(q).asList(FetchOptions.Builder.withDefaults().limit(1));
+		
+		if (schema.isEmpty()) {
+			return null;
+		}
+		else {
+			latestSchema.setAttributesString(schema.get(0).getProperty("value").toString());
+			latestSchema.setKind(schema.get(0).getProperty("kind").toString());
+			latestSchema.setVersion(Integer.parseInt(schema.get(0).getProperty("version").toString()));
+			latestSchema.setTimestamp(Integer.parseInt(schema.get(0).getProperty("ts").toString()));
+			return latestSchema;
+		}
 	}
 	
-	public int getLatestTimestamp(String kind, String id){
+	// returns the entity with the highest timestamp for input kind and specific id
+	public Entity getLatestEntity(String kind, int id){		
+		ds = DatastoreServiceFactory.getDatastoreService();
+		Schema schema = null;
+		int version = 0;
+		String kindWithoutVersionNr = kind.replaceAll("\\d", "");
+		if (!kindWithoutVersionNr.equals(kind)) {
+			version = Integer.parseInt( kind.replaceAll("[^0-9]", ""));
+		}
+		if (version == 0) {
+			schema = getLatestSchema(kindWithoutVersionNr);
+			version = schema.getVersion();
+		}
+		
+		Query kindQuery = new Query(kindWithoutVersionNr + Integer.toString(version))
+				.setAncestor(KeyFactory.createKey(kindWithoutVersionNr, id))
+				.addSort("ts", SortDirection.DESCENDING);
+		List<Entity> latestEntity = ds.prepare(kindQuery).asList(FetchOptions.Builder.withDefaults().limit(1));
+		
+		if (latestEntity.isEmpty()) 
+			return null;
+		else 
+			return latestEntity.get(0);
+	}
+	
+	// returns the highest timestamp for a specific kind and id
+	public int getLatestTimestamp(String kind, int id){		
+		ds = DatastoreServiceFactory.getDatastoreService();
 		int ts = 0;
 		Schema latestSchema = getLatestSchema(kind.replaceAll("\\d", ""));
 		int version = latestSchema.getVersion();
-		String newKey = kind + Integer.toString(version);
-		Query kindQuery = new Query(newKey).setAncestor(KeyFactory.createKey(kind.replaceAll("\\d", ""),
-				id)).addSort("ts", SortDirection.DESCENDING);
-		List<Entity> latestEntity = ds.prepare(kindQuery).asList(FetchOptions.Builder.withDefaults());
-		Entity e = null;
-		if (!latestEntity.isEmpty())
-			e = latestEntity.get(0);
-		if (e != null){
-			ts = Integer.parseInt((String) e.getProperty("ts"));
-		}
+
+		Query kindQuery = new Query(kind + Integer.toString(version))
+				.setAncestor(KeyFactory.createKey(kind.replaceAll("\\d", ""), id))
+				.addSort("ts", SortDirection.DESCENDING);
+		List<Entity> latestEntity = ds.prepare(kindQuery).asList(FetchOptions.Builder.withDefaults().limit(1));
 		
-		return ts;
+		if (latestEntity.isEmpty()) 
+			return 0;
+		else {
+			ts = ((Long)latestEntity.get(0).getProperty("ts")).intValue();
+			return ts;
+		}
 	}
 	
 	// write the datalogFact to datastore
 	// input: "Player2(4,'Lisa',40)"
 	// timestamp will be added automatically
-	public void putToDatabase(String datalogFact, String value){ 
+	public void putToDatabase(String datalogFact){
 		Entity entity = null;
 		try {
-			entity = new ParserForPut(new StringReader(datalogFact)).getEntity(value);
+			entity = new ParserForPut(new StringReader(datalogFact)).getEntity();
 		} catch (InputMismatchException | ParseException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -280,8 +301,7 @@ public class Database {
 
 	}
 	
-	// write a schema to file "Schema.json"
-	// input example: newSchema = "?a,?b,?c"
+	// put a schema entity to datastore
 	public void saveCurrentSchema(String kind, ArrayList<String> newSchemaList){
 		String newSchema = "";
 		for(String s: newSchemaList){
@@ -298,6 +318,5 @@ public class Database {
 		schema.setProperty("ts", latestSchema.getTimestamp() + 1);
 		ds.put(schema);
 	}
-
 
 }

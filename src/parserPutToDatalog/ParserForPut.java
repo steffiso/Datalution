@@ -18,20 +18,18 @@ public class ParserForPut implements ParserForPutConstants {
 
   private static int length = 0;
 
-  private static int ts = 0;
-
   private static boolean hasTS = false;
 
   private static Database db = new Database();
 
-  private static void getSchema(String kind, int number) throws InputMismatchException
+  private static void getSchema(String kind, int version) throws InputMismatchException
   {
     Schema schema = null;
-    if (number == 0)
+    if (version == 0)
     {
       schema = db.getLatestSchema(kind);
     }
-    else schema = db.getSchema(kind, number);
+    else schema = db.getSchema(kind, version);
     if (schema != null)
     {
       attributes = schema.getAttributes();
@@ -40,28 +38,28 @@ public class ParserForPut implements ParserForPutConstants {
     }
   }
 
-  final public Entity start(Database db, String username) throws ParseException, InputMismatchException {
+  final public Entity start(Database db) throws ParseException, InputMismatchException {
   Entity value = null;
-  counter = 0;
   this.db = db;
   hasTS = false;
   schemaVersion = 0;
   attributes = null;
   length = 0;
-  ts = 0;
-    value = getEntity(username);
+    value = getEntity();
     jj_consume_token(0);
     {if (true) return value;}
     throw new Error("Missing return statement in function");
   }
 
-  final public Entity getEntity(String username) throws ParseException, InputMismatchException {
+  final public Entity getEntity() throws ParseException, InputMismatchException {
   Token kind = null;
   Token schemaToken = null;
+  Token idToken = null;
   Entity value = null;
   boolean testOverflow = false;
+  int id = 0;
   int newTS = 0;
-  counter = 0;
+  counter = 1;
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case put:
       jj_consume_token(put);
@@ -80,12 +78,22 @@ public class ParserForPut implements ParserForPutConstants {
       jj_la1[1] = jj_gen;
       ;
     }
+    jj_consume_token(16);
+    idToken = jj_consume_token(number);
+    jj_consume_token(17);
+    if (idToken != null)
+    {
+      id = Integer.parseInt(idToken.toString());
+    }
+    else if (idToken == null)
+    {
+      {if (true) throw new InputMismatchException("no id found");}
+    }
     if (schemaToken != null && testOverflow == false)
     {
       schemaVersion = Integer.parseInt(schemaToken.toString());
       getSchema(kind.toString(), schemaVersion);
-      ts = db.getLatestTimestamp(kind.toString(), username);
-      newTS = ts + 1;
+      newTS = db.getLatestTimestamp(kind.toString(), id) + 1;
     }
     else if (schemaToken != null && testOverflow == true)
     {
@@ -94,23 +102,21 @@ public class ParserForPut implements ParserForPutConstants {
     else
     {
       getSchema(kind.toString(), 0);
-      ts = db.getLatestTimestamp(kind.toString(), username);
-      newTS = ts + 1;
+      newTS = db.getLatestTimestamp(kind.toString(), id) + 1;
     }
     if (attributes == null)
     {
       {if (true) throw new InputMismatchException("no info for schema of " + kind.toString() + " found");}
     }
-    jj_consume_token(16);
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case nullValue:
     case string:
     case number:
       value = listOfValues(new Entity
             (
-              kind.toString()+ schemaVersion, username+ Integer.toString(newTS), KeyFactory.createKey
+              kind.toString()+ schemaVersion, idToken.toString() + Integer.toString(newTS), KeyFactory.createKey
               (
-                kind.toString(), username
+                kind.toString(), id
               )
             ));
       break;
@@ -118,16 +124,17 @@ public class ParserForPut implements ParserForPutConstants {
       jj_la1[2] = jj_gen;
       ;
     }
-    jj_consume_token(17);
+    jj_consume_token(18);
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-    case 18:
-      jj_consume_token(18);
+    case 19:
+      jj_consume_token(19);
       break;
     default:
       jj_la1[3] = jj_gen;
       ;
     }
     if (value == null) {if (true) throw new InputMismatchException("no attributes for " + kind.toString());}
+    value.setProperty("id",id);
     value.setProperty("ts", newTS);
     {if (true) return value;}
     throw new Error("Missing return statement in function");
@@ -137,7 +144,6 @@ public class ParserForPut implements ParserForPutConstants {
   Token valueOfToken = null;
   Entity valueOfOtherToken = null;
   String valueOne = "";
-  boolean isTS = false;
   String name = null;
   boolean nullvalue = false;
   int numbers = 0;
@@ -174,15 +180,8 @@ public class ParserForPut implements ParserForPutConstants {
     }
     else if (counter == length)
     {
-//      if (!(valueOfToken.kind == string))
-//      {
-//        isTS = true;
-//        hasTS = true;
-//        ts = Integer.parseInt(valueOfToken.toString());
-//      }
       counter++;
     }
-
     else
     {
       counter++;
@@ -191,25 +190,24 @@ public class ParserForPut implements ParserForPutConstants {
     label_1:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-      case 19:
+      case 17:
         ;
         break;
       default:
         jj_la1[5] = jj_gen;
         break label_1;
       }
-      jj_consume_token(19);
+      jj_consume_token(17);
       valueOfOtherToken = listOfValues(value);
     }
     String nullValues = "";
     if (valueOfOtherToken != null)
-    { /*if (counter < length) { for (int i = counter; i < length; i++) { String attributename = attributes.get(i); name = null; valueOfOtherToken.setProperty(attributename, null); } }*/
+    {
       value = valueOfOtherToken;
       if (name != null) value.setProperty(valueOne, name);
       else if (nullvalue) value.setProperty(valueOne, null);
       else if (valueOne == "")
-      {
-      }
+      {}
       else value.setProperty(valueOne, numbers);
       {if (true) return value;}
     }
@@ -241,7 +239,7 @@ public class ParserForPut implements ParserForPutConstants {
       jj_la1_init_0();
    }
    private static void jj_la1_init_0() {
-      jj_la1_0 = new int[] {0x40,0x1000,0x1c00,0x40000,0x1c00,0x80000,};
+      jj_la1_0 = new int[] {0x40,0x1000,0x1c00,0x80000,0x1c00,0x20000,};
    }
 
   /** Constructor with InputStream. */

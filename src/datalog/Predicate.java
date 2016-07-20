@@ -10,6 +10,7 @@ public class Predicate {
 	private int numberSchemeEntries; // --> 2
 	private boolean isNot = false;
 	private boolean isHead = false;
+	private boolean latest = false;
 	private int stratum = 0;
 	private int ranking = 0;
 	private ArrayList<ArrayList<String>> relation;
@@ -138,6 +139,14 @@ public class Predicate {
 		} else if (!scheme.equals(other.scheme))
 			return false;
 		return true;
+	}
+
+	public boolean isLatest() {
+		return latest;
+	}
+
+	public void setLatest(boolean latest) {
+		this.latest = latest;
 	}
 	
 

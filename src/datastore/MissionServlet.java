@@ -98,7 +98,7 @@ public class MissionServlet extends HttpServlet {
 		Entity childPlayer = null;
 		try {
 			childPlayer = new ParserForPut(new StringReader(
-					req.getParameter("name"))).start(new Database(), missionID);
+					req.getParameter("name"))).start(new Database());
 		} catch (InputMismatchException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -118,14 +118,14 @@ public class MissionServlet extends HttpServlet {
 		ParserQueryToDatalogToJava parserget = new ParserQueryToDatalogToJava(
 				new StringReader(uiInput));
 		ArrayList<Rule> rulesTemp = new ArrayList<Rule>();
-		ArrayList<datastore.Rule> rules=databaseTD.getRules();
+		ArrayList<datastore.Rule> rules=databaseTD.getAllRulesFromDatastore();
 		if(rules!=null){
 		for(datastore.Rule r:rules)
 			try {
-				if (r.isHead())
+				//if (r.isHead())
 				rulesTemp.addAll(new ParserRuleToJava(new StringReader(r.getValue())).parseHeadRules());
-				else
-					rulesTemp.addAll(new ParserRuleToJava(new StringReader(r.getValue())).start());
+//				else
+//					rulesTemp.addAll(new ParserRuleToJava(new StringReader(r.getValue())).start());
 			} catch (parserRuletoJava.ParseException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
@@ -144,7 +144,7 @@ public class MissionServlet extends HttpServlet {
 		}
 
 		String kind = parserget.getKind();
-		id = parserget.getId();
+		id = parserget.getIdStr();
 		// start lazy migration
 		Map<String, String> attributeMap = new TreeMap<String, String>();
 		attributeMap.put("kind", kind);
