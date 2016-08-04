@@ -1,14 +1,9 @@
 package datastore;
 
 import java.io.IOException;
-import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.InputMismatchException;
 import java.util.List;
-import java.util.Map;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
@@ -17,8 +12,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import parserQueryToDatalogToJava.ParseException;
-import parserQueryToDatalogToJava.ParserQueryToDatalogToJava;
-import parserRuletoJava.ParserRuleToJava;
 
 @SuppressWarnings("serial")
 public class AdminServlet extends HttpServlet {
@@ -30,19 +23,19 @@ public class AdminServlet extends HttpServlet {
 			
 	public void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException, ServletException {				
 		String command = req.getParameter("command");
-		Database db = new Database();
+		DatalutionDatastoreService dds = new DatalutionDatastoreService();
 		rulesStr = "";
+		
 		
 		if (command != null){
 			if (command.equals("start")) {
-				db.addStartEntities();	
+				dds.addStartEntities();	
 				resp.sendRedirect("/admin");
 			}
 			else {
 				try {
-					rulesStr = new ParserQueryToDatalogToJava(new StringReader(
-							command)).getDatalogRules(db);
-					resp.sendRedirect("/admin");
+				rulesStr = dds.changeSchema(command);
+				resp.sendRedirect("/admin");
 				} catch (InputMismatchException e) {
 					// TODO Auto-generated catch block
 					resp.getWriter().println("Error:");
@@ -59,23 +52,7 @@ public class AdminServlet extends HttpServlet {
 					resp.getWriter().println(e.getMessage());
 					resp.setHeader("Refresh", "5;url=/admin");
 				}
-				
-				if (!rulesStr.equals("")) {
-					HashMap<String, String> rulesMap = new HashMap<String, String>();
-					List<String> rulesSplit = new ArrayList<String>(Arrays.asList(rulesStr.split("\n")));
-					for (String rule: rulesSplit){	
-						String head = rule.substring(0, rule.indexOf("("));
-						if (rulesMap.containsKey("Rules" + head)) {
-							String oldValue = rulesMap.get("Rules" + head);
-							rulesMap.put("Rules" + head, oldValue + "\n" + rule);
-						}
-						else {
-							rulesMap.put("Rules" + head, rule);
-						}								
-					}
-					db.addRules(rulesMap);
-				}
-
+			
 			}
 		}
 

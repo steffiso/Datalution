@@ -2,7 +2,7 @@
 package parserQueryToDatalogToJava;
 import java.util.ArrayList;
 import java.io.StringReader;
-import datastore.Database;
+import datastore.DatalutionDatastoreService;
 import datastore.Schema;
 import datalog.Rule;
 import parserRuletoJava.ParserRuleToJava;
@@ -20,7 +20,7 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
 
   private static ArrayList < Rule > rules = new ArrayList < Rule > ();
 
-  private static Database db;
+  private static DatalutionDatastoreService db;
 
   private static Schema currentSchemaFrom = null;
 
@@ -159,7 +159,7 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
     return schema.getAttributes().contains("?" + value);
   }
 
-  final public String getDatalogRules(Database db) throws ParseException, InputMismatchException, IOException, parserRuletoJava.ParseException {
+  final public String getDatalogRules(DatalutionDatastoreService db) throws ParseException, InputMismatchException, IOException, parserRuletoJava.ParseException {
   String value = null;
   this.db = db;
     value = start();
@@ -168,7 +168,7 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
     throw new Error("Missing return statement in function");
   }
 
-  final public ArrayList < Rule > getJavaRules(Database db) throws ParseException, InputMismatchException, IOException, parserRuletoJava.ParseException {
+  final public ArrayList < Rule > getJavaRules(DatalutionDatastoreService db) throws ParseException, InputMismatchException, IOException, parserRuletoJava.ParseException {
   String value = null;
   this.db = db;
     value = start();

@@ -2,7 +2,7 @@
 package parserQueryToDatalogToJava;
 import java.util.ArrayList;
 import java.io.StringReader;
-import datastore.Database;
+import datastore.DatalutionDatastoreService;
 import datastore.Schema;
 import datalog.Rule;
 import parserRuletoJava.ParserRuleToJava;

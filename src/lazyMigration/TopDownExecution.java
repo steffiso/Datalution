@@ -9,7 +9,7 @@ import java.util.Map;
 
 import com.google.appengine.api.datastore.Entity;
 import parserPutToDatalog.ParseException;
-import datastore.Database;
+import datastore.DatalutionDatastoreService;
 import datalog.Condition;
 import datalog.Fact;
 import datalog.MagicCondition;
@@ -33,7 +33,7 @@ public class TopDownExecution extends MigrationExecution {
 	private int numberOfPuts = 0; // number of db writes
 	private int numberOfMGView = 0; // number of magic set views
 
-	private Database db = new Database();
+	private DatalutionDatastoreService db = new DatalutionDatastoreService();
 
 	public int getNumberOfPuts() {
 		return numberOfPuts;
@@ -335,7 +335,7 @@ return result;
 
 	private void putFactToDB(Fact newFact) throws URISyntaxException,
 			ParseException, IOException {
-		Database db = new Database();
+		DatalutionDatastoreService db = new DatalutionDatastoreService();
 		// put fact to database: "Player2(4,'Lisa',40)" (timestamp will be added
 		// automatically)
 		//db.putToDatabase(newFact.toString(), newFact.getListOfValues().get(0));

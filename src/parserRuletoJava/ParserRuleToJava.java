@@ -182,15 +182,11 @@ public class ParserRuleToJava implements ParserRuleToJavaConstants {
   Token schemaToken = null;
   Token latestToken = null;
   String value = null;
-  String attribute = null;
   ArrayList < String > scheme = null;
   Predicate predicate = null;
-  ArrayList < String > schema = null;
   boolean isNot = false;
-  boolean schemaExists = true;
   boolean isHead = false;
     scheme = new ArrayList < String > ();
-    int pos = 0;
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case 18:
       jj_consume_token(18);

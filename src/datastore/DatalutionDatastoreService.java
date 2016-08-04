@@ -1,12 +1,16 @@
 package datastore;
 
+import java.io.IOException;
 import java.io.StringReader;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.InputMismatchException;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
@@ -16,23 +20,29 @@ import com.google.appengine.api.datastore.FetchOptions;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.Query;
+import com.google.appengine.api.datastore.Transaction;
 import com.google.appengine.api.datastore.Query.SortDirection;
 import com.google.appengine.api.memcache.MemcacheService;
 import com.google.appengine.api.memcache.MemcacheService.IdentifiableValue;
+
+import datalog.Fact;
+import datalog.Predicate;
+import datalog.Rule;
+import lazyMigration.LazyMigration;
+
 import com.google.appengine.api.memcache.MemcacheServiceFactory;
 
 import parserPutToDatalog.ParseException;
 import parserPutToDatalog.ParserForPut;
+import parserQueryToDatalogToJava.ParserQueryToDatalogToJava;
+import parserRuletoJava.ParserRuleToJava;
 
-public class Database {
+public class DatalutionDatastoreService {
 
 	DatastoreService ds;
 	
-	public Database(){
+	public DatalutionDatastoreService(){
 		ds = DatastoreServiceFactory.getDatastoreService();
-	}
-	public Database(DatastoreService ds) {
-		this.ds =ds;
 	}
 	
 	public void addStartEntities(){
@@ -99,7 +109,120 @@ public class Database {
 		ds.put(mission1);
 		ds.put(mission2);
 		ds.put(mission3);
+	}
+	
+	public void put(Entity entity){
+		int retries = 3;
+		while (true) {
+		  Transaction txn = ds.beginTransaction();
+		  try {
+			  ds.put(entity);
+			  txn.commit();
+			  break;
+		  } catch (ConcurrentModificationException e) {
+		    if (retries == 0) {
+		      throw e;
+		    }
+		    // Allow retry to occur
+		    --retries;
+		  } finally {
+		    if (txn.isActive()) {
+		      txn.rollback();
+		    }
+		  }
+		}
+	}
+	
+	public Entity get(String kind, String id){
+		Entity goalEntity = getLatestEntity(kind,Integer.parseInt(id));
+		
+		if (goalEntity == null){		
+			ArrayList<Rule> rulesTemp = new ArrayList<Rule>();
+			ArrayList<datastore.Rule> rules= getAllRulesFromDatastore();
+			for(datastore.Rule r:rules)
+				try {
+					rulesTemp.addAll(new ParserRuleToJava(new StringReader(r.getValue())).parseHeadRules());
+				} catch (parserRuletoJava.ParseException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			
+			// start lazy migration
+			try {
+				rulesTemp.addAll(new ParserQueryToDatalogToJava(
+						new StringReader("get " + kind + ".id="+id)).getJavaRules(this));
+			} catch (InputMismatchException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			} catch (parserQueryToDatalogToJava.ParseException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			} catch (parserRuletoJava.ParseException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			Map<String, String> attributeMap = new TreeMap<String, String>();
+			attributeMap.put("kind", kind);
+			attributeMap.put("position", "0");
+			attributeMap.put("value", id);
+			ArrayList<Map<String, String>> uniMap = new ArrayList<Map<String, String>>();
+			uniMap.add(attributeMap);
+			ArrayList<String> schema;
+			Predicate goal;
+			schema = getLatestSchema(kind).getAttributes();
+	
+			schema.add("?ts");
+	
+			goal = new Predicate("get" + kind
+					+ getLatestSchemaVersion(kind), schema.size(),
+					schema);
+			
+			ArrayList<Fact> facts = new ArrayList<Fact>();
+	
+			LazyMigration migrate = new LazyMigration(facts, rulesTemp, goal,
+					uniMap);
+			
+			@SuppressWarnings("unused")
+			ArrayList<String> answerString = null;
+			try {
+				answerString = migrate.writeAnswersInDatabase();
+			} catch (ParseException | IOException | URISyntaxException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			// besser : nicht nochmal aus datastore abfragen, 
+			// sondern direkt aus answerString?
+			goalEntity = getLatestEntity(kind, Integer.parseInt(id));
+			
+		}
+		
+		return goalEntity;
+	}
+	
+	public String changeSchema(String command) throws InputMismatchException, parserQueryToDatalogToJava.ParseException, IOException, parserRuletoJava.ParseException{
+		String rulesStr = new ParserQueryToDatalogToJava(new StringReader(
+					command)).getDatalogRules(this);
 
+		if (!rulesStr.equals("")) {
+			HashMap<String, String> rulesMap = new HashMap<String, String>();
+			List<String> rulesSplit = new ArrayList<String>(Arrays.asList(rulesStr.split("\n")));
+			for (String rule: rulesSplit){	
+				String head = rule.substring(0, rule.indexOf("("));
+				if (rulesMap.containsKey("Rules" + head)) {
+					String oldValue = rulesMap.get("Rules" + head);
+					rulesMap.put("Rules" + head, oldValue + "\n" + rule);
+				}
+				else {
+					rulesMap.put("Rules" + head, rule);
+				}								
+			}
+			addRules(rulesMap);
+		}
+		return rulesStr;
 	}
 
 	public ArrayList<datastore.Rule> getAllRulesFromDatastore(){
@@ -113,12 +236,12 @@ public class Database {
 			for(Entity e: rulesEntity) 
 				rules = rules + (String) e.getProperty("value");
 			
-			ArrayList<Rule> rulesList = new ArrayList<Rule>();
+			ArrayList<datastore.Rule> rulesList = new ArrayList<datastore.Rule>();
 			
 			if (!rules.equals("")) {
 				ArrayList<String> rulesStringList = new ArrayList<String>(Arrays.asList(rules.split("\n")));
 				for (String rule: rulesStringList){
-					Rule r = new Rule();
+					datastore.Rule r = new datastore.Rule();
 					r.setValue(rule);
 					rulesList.add(r);
 				}
@@ -134,7 +257,7 @@ public class Database {
 	// return specific rules, e.g. all rules starting with "Player2"
 	public ArrayList<datastore.Rule> getRulesFromMemcache(String key) {
 		MemcacheService syncCache = MemcacheServiceFactory.getMemcacheService();
-		ArrayList<Rule> rulesList = new ArrayList<Rule>();
+		ArrayList<datastore.Rule> rulesList = new ArrayList<datastore.Rule>();
         String rules = "";
         
         rules = (String) syncCache.get("Rules" + key);
@@ -142,7 +265,7 @@ public class Database {
 			// rule with given key exists in memcache
 			ArrayList<String> rulesStringList = new ArrayList<String>(Arrays.asList(rules.split("\n")));
 			for (String rule: rulesStringList){
-				Rule r = new Rule();
+				datastore.Rule r = new datastore.Rule();
 				r.setValue(rule);
 				rulesList.add(r);
 			}
@@ -179,15 +302,12 @@ public class Database {
 	        if (oldRules == null) {
 		        // Key doesn't exist. We can safely put it in cache.
 		        syncCache.put(rulesKey, rulesValue);
-	        } 
-	        
-	        // no concurrency problem for admin ??!!	          
+	        }       
 		}			
 	}
 
 	// return the schema for kind and version
 	public Schema getSchema(String inputKind, int inputVersion){
-		ds = DatastoreServiceFactory.getDatastoreService();
 		Key schemaKey = KeyFactory.createKey(KeyFactory.createKey("Schema", inputKind), "Schema" + inputKind, inputVersion);
 		
 		Entity e = null;
@@ -221,7 +341,6 @@ public class Database {
 
 	// returns the latest schema for input kind
 	public Schema getLatestSchema(String kind){
-		ds = DatastoreServiceFactory.getDatastoreService();
 		Schema latestSchema = new Schema();
 		
 		Query q = new Query ("Schema"+kind).setAncestor(KeyFactory.createKey("Schema", kind))
@@ -242,7 +361,6 @@ public class Database {
 	
 	// returns the entity with the highest timestamp for input kind and specific id
 	public Entity getLatestEntity(String kind, int id){		
-		ds = DatastoreServiceFactory.getDatastoreService();
 		Schema schema = null;
 		int version = 0;
 		String kindWithoutVersionNr = kind.replaceAll("\\d", "");
@@ -267,7 +385,6 @@ public class Database {
 	
 	// returns the highest timestamp for a specific kind and id
 	public int getLatestTimestamp(String kind, int id){		
-		ds = DatastoreServiceFactory.getDatastoreService();
 		int ts = 0;
 		Schema latestSchema = getLatestSchema(kind.replaceAll("\\d", ""));
 		int version = latestSchema.getVersion();
@@ -297,7 +414,7 @@ public class Database {
 			e.printStackTrace();
 		}
 		if (entity != null)
-			ds.put(entity);
+			ds.put(null, entity);
 
 	}
 	
