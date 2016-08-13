@@ -25,7 +25,6 @@ span.tab {
 							</p>
 							
 							<p>No entity found. Please fill "put command" and click "Create".</p>
-							<p>Please fill "put" command and click "Create"</p>
 							
 							<p>
 								<input type="submit" value="Show">

@@ -32,11 +32,12 @@ public class DatalutionServlet extends HttpServlet {
 
 		dds = new DatalutionDatastoreService();
 		Entity childPlayer = null;
-		if (req.getParameter("putCommand") != null){
+		if (req.getParameter("putCommand") != null
+				&& !req.getParameter("putCommand").isEmpty()) {
 			putCommand = req.getParameter("putCommand");
 			try {
-				childPlayer = new ParserForPut(new StringReader(
-						putCommand)).start();
+				childPlayer = new ParserForPut(new StringReader(putCommand))
+						.start();
 				dds.put(childPlayer);
 			} catch (InputMismatchException e) {
 				// TODO Auto-generated catch block
@@ -50,17 +51,18 @@ public class DatalutionServlet extends HttpServlet {
 		resp.sendRedirect("/user");
 
 	}
-	
+
 	public void doGet(HttpServletRequest req, HttpServletResponse resp)
 			throws IOException, ServletException {
 		resp.setContentType("text/html");
 		dds = new DatalutionDatastoreService();
 		Entity userPlayer = null;
 		RequestDispatcher jsp = null;
-		if (req.getParameter("getCommand") != null) {
+		if (req.getParameter("getCommand") != null
+				&& !req.getParameter("getCommand").isEmpty()) {
 			getCommand = req.getParameter("getCommand");
 			ParserQueryToDatalogToJava parserget = new ParserQueryToDatalogToJava(
-						new StringReader(getCommand));
+					new StringReader(getCommand));
 			try {
 				@SuppressWarnings("unused")
 				ArrayList<Rule> rules = parserget.getJavaRules(dds);
@@ -77,13 +79,13 @@ public class DatalutionServlet extends HttpServlet {
 			userid = parserget.getId();
 			kind = parserget.getKind();
 			userIdStr = parserget.getIdStr();
-		}
-		else getCommand = null;
-		
-		if (getCommand != null) {			
+		} else
+			getCommand = null;
+
+		if (getCommand != null) {
 			userPlayer = dds.get(kind, userIdStr);
-			
-			if (userPlayer != null){
+
+			if (userPlayer != null) {
 				Schema latestSchema = dds.getLatestSchema(kind);
 				String values = "[";
 				for (String s : latestSchema.getAttributes())
@@ -91,8 +93,8 @@ public class DatalutionServlet extends HttpServlet {
 							+ userPlayer.getProperty(s.substring(1)) + ", ";
 				values = values + "ts=" + userPlayer.getProperty("ts") + "]";
 				req.setAttribute("values", values);
-			}			
-			
+			}
+
 			req.setAttribute("username", userid);
 		}
 

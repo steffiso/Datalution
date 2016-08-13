@@ -89,7 +89,7 @@ public class ParserForPut implements ParserForPutConstants {
       //put from lazy migration
       schemaVersion = Integer.parseInt(schemaToken.toString());
       getSchema(kind.toString(), schemaVersion);
-      newTS = 0;
+      //newTS = 0;
     }
     else if (schemaToken != null && testOverflow == true)
     {
@@ -99,7 +99,7 @@ public class ParserForPut implements ParserForPutConstants {
     {
       // manual put
       getSchema(kind.toString(), 0);
-      newTS = db.getLatestTimestamp(kind.toString(), id) + 1;
+      // newTS = db.getLatestTimestamp(kind.toString(), id) + 1;
     }
     if (attributes == null)
     {
@@ -111,10 +111,11 @@ public class ParserForPut implements ParserForPutConstants {
     case number:
       value = listOfValues(new Entity
             (
-              kind.toString()+ schemaVersion, idToken.toString()+ Integer.toString(newTS), KeyFactory.createKey
-              (
-                kind.toString(), id
-              )
+              kind.toString()+ schemaVersion
+              //,idToken.toString()+ Integer.toString(newTS), KeyFactory.createKey
+              //        (
+              //          kind.toString(), id
+              //        )
             ));
       break;
     default:
@@ -132,7 +133,7 @@ public class ParserForPut implements ParserForPutConstants {
     }
     if (value == null) {if (true) throw new InputMismatchException("no attributes for " + kind.toString());}
     value.setProperty("id", id);
-    value.setProperty("ts", newTS);
+    //value.setProperty("ts", newTS);
     {if (true) return value;}
     throw new Error("Missing return statement in function");
   }
