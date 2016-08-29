@@ -111,4 +111,22 @@ public class ConcurrentTransaction {
 
 	}
 
+	@Test
+	public void testSinglePutWithEmbeddedTransaction() throws InterruptedException,
+			EntityNotFoundException {
+		DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
+		Key parent = KeyFactory.createKey("Player", 1);
+
+		putEntities(ds, parent);
+		DatalutionDatastoreService dds = new DatalutionDatastoreService(ds);
+		Transaction txn = ds.beginTransaction();
+
+		Entity e1 = new Entity("Player1");
+		e1.setProperty("name", "Lisa1");
+		e1.setProperty("id", 1);
+		dds.put(e1);
+		txn.commit();
+		Entity latestEntity = dds.getLatestEntity("Player1", 1);
+		assertEquals("Lisa1", latestEntity.getProperty("name"));
+	}
 }

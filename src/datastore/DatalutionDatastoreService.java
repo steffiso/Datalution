@@ -128,10 +128,11 @@ public class DatalutionDatastoreService {
 	public void put(Entity entity) {
 		int retries = 3;
 		while (true) {
+			String kind=entity.getKind();
+			int id=(int) entity.getProperty("id");
 			Transaction txn = ds.beginTransaction();
 			try {
-				String kind=entity.getKind();
-				int id=(int) entity.getProperty("id");
+				
 				int ts = getLatestTimestamp(txn, kind,
 						id) + 1;
 				Entity newEntity = new Entity(kind,

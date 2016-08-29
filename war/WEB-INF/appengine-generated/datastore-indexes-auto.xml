@@ -1,0 +1,10 @@
+<!-- Indices written at Sun, 28 Aug 2016 17:08:53 CEST -->
+
+<datastore-indexes>
+
+    <!-- Used 1 time in query history -->
+    <datastore-index kind="SchemaK" ancestor="true" source="auto">
+        <property name="ts" direction="desc"/>
+    </datastore-index>
+
+</datastore-indexes>
