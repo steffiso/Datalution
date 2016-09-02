@@ -16,7 +16,7 @@ import datalog.Rule;
 import parserRuletoJava.ParserRuleToJava;
 import java.util.InputMismatchException;
 import java.io.IOException;
-import com.google.api.server.spi.response.BadRequestException;
+import com.google.appengine.api.datastore.EntityNotFoundException;
 
 public class ParserQueryToDatalogToJava
 {
@@ -147,7 +147,7 @@ public class ParserQueryToDatalogToJava
     }
   }
 
-  public String getAttributeName(String kind, int schemaNumber, int pos) throws InputMismatchException, IOException
+  public String getAttributeName(String kind, int schemaNumber, int pos) throws InputMismatchException, IOException, EntityNotFoundException
   {
     Schema currentSchema = dds.getSchema(kind, schemaNumber);
     if (currentSchema != null)
@@ -200,7 +200,7 @@ TOKEN :
   | "_" >
 }
 
-String getDatalogRules(DatalutionDatastoreService dds) throws InputMismatchException, IOException, parserRuletoJava.ParseException, BadRequestException :
+String getDatalogRules(DatalutionDatastoreService dds) throws InputMismatchException, IOException, parserRuletoJava.ParseException :
 {
   String value = null;
   this.dds = dds;
@@ -212,7 +212,7 @@ String getDatalogRules(DatalutionDatastoreService dds) throws InputMismatchExcep
   }
 }
 
-ArrayList < Rule > getJavaRules(DatalutionDatastoreService dds) throws InputMismatchException, IOException, parserRuletoJava.ParseException, BadRequestException :
+ArrayList < Rule > getJavaRules(DatalutionDatastoreService dds) throws InputMismatchException, IOException, parserRuletoJava.ParseException :
 {
   String value = null;
   this.dds = dds;
@@ -225,7 +225,7 @@ ArrayList < Rule > getJavaRules(DatalutionDatastoreService dds) throws InputMism
   }
 }
 
-String start() throws InputMismatchException, IOException, parserRuletoJava.ParseException, BadRequestException :
+String start() throws InputMismatchException, IOException, parserRuletoJava.ParseException :
 {
   String value = null;
   rules = new ArrayList < Rule > ();
@@ -245,7 +245,7 @@ String start() throws InputMismatchException, IOException, parserRuletoJava.Pars
   }
 }
 
-String get() throws BadRequestException, IOException, parserRuletoJava.ParseException :
+String get() throws IOException, parserRuletoJava.ParseException :
 {
   Token kindToken = null;
   Token idToken = null;
@@ -258,7 +258,7 @@ String get() throws BadRequestException, IOException, parserRuletoJava.ParseExce
   | idToken = < number >
   )
   {
-    if (!propertyToken.toString().equals("id")) throw new BadRequestException("only id for get");
+    if (!propertyToken.toString().equals("id")) throw new IOException("only id for get");
     String kind = kindToken.toString();
     String idTemp;
     if (idToken.kind == string)
@@ -277,7 +277,7 @@ String get() throws BadRequestException, IOException, parserRuletoJava.ParseExce
     getSchemaFromDB(kind, "");
     if (currentSchemaFrom == null)
     {
-      throw new BadRequestException("no info for schema of " + kind + " found");
+      throw new IOException("no info for schema of " + kind + " found");
     }
     ArrayList < String > schema = currentSchemaFrom.getAttributesAsList();
     int currentVersion = currentSchemaFrom.getVersion();

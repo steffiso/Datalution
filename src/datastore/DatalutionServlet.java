@@ -7,6 +7,7 @@ package datastore;
  */
 import java.io.IOException;
 import java.io.StringReader;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.InputMismatchException;
 import javax.servlet.RequestDispatcher;
@@ -19,8 +20,8 @@ import parserPutToDatalog.ParseException;
 import parserPutToDatalog.ParserForPut;
 import parserQueryToDatalogToJava.ParserQueryToDatalogToJava;
 
-import com.google.api.server.spi.response.BadRequestException;
 import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.EntityNotFoundException;
 
 import datalog.Rule;
 
@@ -46,11 +47,7 @@ public class DatalutionServlet extends HttpServlet {
 				childPlayer = new ParserForPut(new StringReader(putCommand))
 						.start();
 				dds.put(childPlayer);
-			} catch (InputMismatchException e) {
-				resp.getWriter().println("Error:");
-				resp.getWriter().println(e.getMessage());
-				resp.setHeader("Refresh", "5;url=/user");
-			} catch (ParseException e) {
+			} catch (InputMismatchException | ParseException | EntityNotFoundException e) {
 				resp.getWriter().println("Error:");
 				resp.getWriter().println(e.getMessage());
 				resp.setHeader("Refresh", "5;url=/user");
@@ -76,23 +73,12 @@ public class DatalutionServlet extends HttpServlet {
 			try {
 				@SuppressWarnings("unused")
 				ArrayList<Rule> rules = parserget.getJavaRules(dds);
-			} catch (InputMismatchException e) {
+			} catch (InputMismatchException | parserQueryToDatalogToJava.ParseException |
+					parserRuletoJava.ParseException e) {
 				resp.getWriter().println("Error:");
 				resp.getWriter().println(e.getMessage());
 				resp.setHeader("Refresh", "5;url=/user");
-			} catch (parserQueryToDatalogToJava.ParseException e) {
-				resp.getWriter().println("Error:");
-				resp.getWriter().println(e.getMessage());
-				resp.setHeader("Refresh", "5;url=/user");
-			} catch (parserRuletoJava.ParseException e) {
-				resp.getWriter().println("Error:");
-				resp.getWriter().println(e.getMessage());
-				resp.setHeader("Refresh", "5;url=/user");
-			} catch (BadRequestException e) {
-				resp.getWriter().println("Error:");
-				resp.getWriter().println(e.getMessage());
-				resp.setHeader("Refresh", "5;url=/user");
-			}
+			} 
 			
 			userId = parserget.getId();
 			kind = parserget.getKind();
@@ -101,7 +87,14 @@ public class DatalutionServlet extends HttpServlet {
 			getCommand = null;
 
 		if (getCommand != null) {
-			userPlayer = dds.get(kind, Integer.toString(userId));
+			try {
+				userPlayer = dds.get(kind, Integer.toString(userId));
+			} catch (InputMismatchException | parserQueryToDatalogToJava.ParseException
+					| parserRuletoJava.ParseException | ParseException | URISyntaxException | EntityNotFoundException e) {
+				resp.getWriter().println("Error:");
+				resp.getWriter().println(e.getMessage());
+				resp.setHeader("Refresh", "5;url=/user");
+			}
 
 			if (userPlayer != null) {
 				String resultEntityStr = formatEntityToOutputString(userPlayer);

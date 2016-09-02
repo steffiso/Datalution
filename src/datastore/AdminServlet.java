@@ -17,8 +17,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.google.api.server.spi.response.BadRequestException;
-
 import parserQueryToDatalogToJava.ParseException;
 
 @SuppressWarnings("serial")
@@ -26,7 +24,7 @@ public class AdminServlet extends HttpServlet {
 
 	private String rulesStr = "";
 			
-	public void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {			
+	public void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException{			
 		String command = req.getParameter("command");
 		DatalutionDatastoreService dds = new DatalutionDatastoreService();
 		rulesStr = "";		
@@ -45,22 +43,12 @@ public class AdminServlet extends HttpServlet {
 				try {
 					rulesStr = dds.saveSchemaChange(command);
 					resp.sendRedirect("/admin");
-				} catch (InputMismatchException e) {
+				} catch (InputMismatchException | ParseException | 
+						parserRuletoJava.ParseException e) {
 					resp.getWriter().println("Error:");
 					resp.getWriter().println(e.getMessage());
 					resp.setHeader("Refresh", "5;url=/admin");
-				} catch (ParseException e) {
-					resp.getWriter().println("Error:");
-					resp.getWriter().println(e.getMessage());
-					resp.setHeader("Refresh", "5;url=/admin");
-				} catch (parserRuletoJava.ParseException e) {
-					resp.getWriter().println("Error:");
-					resp.getWriter().println(e.getMessage());
-					resp.setHeader("Refresh", "5;url=/admin");
-				} catch (BadRequestException e) {
-					// TODO Auto-generated catch block
-					resp.getWriter().println(e.getMessage());
-				}			
+				}
 			}
 		}
 	}

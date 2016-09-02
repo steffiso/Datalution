@@ -3,11 +3,14 @@ package lazyMigration;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.InputMismatchException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.EntityNotFoundException;
+
 import parserPutToDatalog.ParseException;
 import datastore.DatalutionDatastoreService;
 import datalog.Condition;
@@ -84,7 +87,7 @@ public class TopDownExecution extends MigrationExecution {
 	}
 
 	public ArrayList<Fact> getAnswers() throws ParseException, IOException,
-	URISyntaxException {
+	URISyntaxException, InputMismatchException, EntityNotFoundException {
 
 ArrayList<Fact> answer = new ArrayList<Fact>();
 /*
@@ -334,7 +337,7 @@ return result;
 	}
 
 	private void putFactToDB(Fact newFact) throws URISyntaxException,
-			ParseException, IOException {
+			ParseException, IOException, InputMismatchException, EntityNotFoundException {
 		DatalutionDatastoreService db = new DatalutionDatastoreService();
 		// put fact to database: "Player2(4,'Lisa',40)" (timestamp will be added
 		// automatically)

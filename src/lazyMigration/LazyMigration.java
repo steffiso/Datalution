@@ -3,8 +3,11 @@ package lazyMigration;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.InputMismatchException;
 import java.util.List;
 import java.util.Map;
+
+import com.google.appengine.api.datastore.EntityNotFoundException;
 
 import parserPutToDatalog.ParseException;
 import datalog.Fact;
@@ -26,7 +29,7 @@ public class LazyMigration {
 		this.unificationMap = unificationMap;
 	}
 
-	public ArrayList<String> writeAnswersInDatabase() throws ParseException, IOException, URISyntaxException {
+	public ArrayList<String> writeAnswersInDatabase() throws ParseException, IOException, URISyntaxException, InputMismatchException, EntityNotFoundException {
 
 		TopDownExecution lazy = new TopDownExecution(facts, rules, goal,
 				unificationMap);

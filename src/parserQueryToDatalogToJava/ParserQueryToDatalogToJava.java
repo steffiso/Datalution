@@ -8,7 +8,7 @@ import datalog.Rule;
 import parserRuletoJava.ParserRuleToJava;
 import java.util.InputMismatchException;
 import java.io.IOException;
-import com.google.api.server.spi.response.BadRequestException;
+import com.google.appengine.api.datastore.EntityNotFoundException;
 
 public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaConstants {
   private String kindStr;
@@ -138,7 +138,7 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
     }
   }
 
-  public String getAttributeName(String kind, int schemaNumber, int pos) throws InputMismatchException, IOException
+  public String getAttributeName(String kind, int schemaNumber, int pos) throws InputMismatchException, IOException, EntityNotFoundException
   {
     Schema currentSchema = dds.getSchema(kind, schemaNumber);
     if (currentSchema != null)
@@ -158,7 +158,7 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
     return schema.getAttributesAsList().contains("?" + value);
   }
 
-  final public String getDatalogRules(DatalutionDatastoreService dds) throws ParseException, InputMismatchException, IOException, parserRuletoJava.ParseException, BadRequestException {
+  final public String getDatalogRules(DatalutionDatastoreService dds) throws ParseException, InputMismatchException, IOException, parserRuletoJava.ParseException {
   String value = null;
   this.dds = dds;
     value = start();
@@ -167,7 +167,7 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
     throw new Error("Missing return statement in function");
   }
 
-  final public ArrayList < Rule > getJavaRules(DatalutionDatastoreService dds) throws ParseException, InputMismatchException, IOException, parserRuletoJava.ParseException, BadRequestException {
+  final public ArrayList < Rule > getJavaRules(DatalutionDatastoreService dds) throws ParseException, InputMismatchException, IOException, parserRuletoJava.ParseException {
   String value = null;
   this.dds = dds;
     value = start();
@@ -177,7 +177,7 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
     throw new Error("Missing return statement in function");
   }
 
-  final public String start() throws ParseException, InputMismatchException, IOException, parserRuletoJava.ParseException, BadRequestException {
+  final public String start() throws ParseException, InputMismatchException, IOException, parserRuletoJava.ParseException {
   String value = null;
   rules = new ArrayList < Rule > ();
   currentSchemaFrom = null;
@@ -207,7 +207,7 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
     throw new Error("Missing return statement in function");
   }
 
-  final public String get() throws ParseException, BadRequestException, IOException, parserRuletoJava.ParseException {
+  final public String get() throws ParseException, IOException, parserRuletoJava.ParseException {
   Token kindToken = null;
   Token idToken = null;
   Token propertyToken = null;
@@ -228,7 +228,7 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
       jj_consume_token(-1);
       throw new ParseException();
     }
-    if (!propertyToken.toString().equals("id")) {if (true) throw new BadRequestException("only id for get");}
+    if (!propertyToken.toString().equals("id")) {if (true) throw new IOException("only id for get");}
     String kind = kindToken.toString();
     String idTemp;
     if (idToken.kind == string)
@@ -247,7 +247,7 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
     getSchemaFromDB(kind, "");
     if (currentSchemaFrom == null)
     {
-      {if (true) throw new BadRequestException("no info for schema of " + kind + " found");}
+      {if (true) throw new IOException("no info for schema of " + kind + " found");}
     }
     ArrayList < String > schema = currentSchemaFrom.getAttributesAsList();
     int currentVersion = currentSchemaFrom.getVersion();

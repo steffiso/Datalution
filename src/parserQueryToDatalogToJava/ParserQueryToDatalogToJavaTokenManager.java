@@ -8,7 +8,7 @@ import datalog.Rule;
 import parserRuletoJava.ParserRuleToJava;
 import java.util.InputMismatchException;
 import java.io.IOException;
-import com.google.api.server.spi.response.BadRequestException;
+import com.google.appengine.api.datastore.EntityNotFoundException;
 
 /** Token Manager. */
 public class ParserQueryToDatalogToJavaTokenManager implements ParserQueryToDatalogToJavaConstants

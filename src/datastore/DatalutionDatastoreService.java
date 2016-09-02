@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import com.google.api.server.spi.response.BadRequestException;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
@@ -103,8 +102,17 @@ public class DatalutionDatastoreService {
 	 * @param kind Kind of needed entity (e.g. Player) 
 	 * @param id Id of needed entity (e.g. 1)
 	 * @return latest entity (even after lazy migration)
+	 * @throws parserRuletoJava.ParseException 
+	 * @throws IOException 
+	 * @throws parserQueryToDatalogToJava.ParseException 
+	 * @throws InputMismatchException 
+	 * @throws URISyntaxException 
+	 * @throws EntityNotFoundException 
 	 */
-	public Entity get(String kind, String id) {
+	public Entity get(String kind, String id) throws InputMismatchException, 
+		parserQueryToDatalogToJava.ParseException, IOException, 
+		parserRuletoJava.ParseException, ParseException, URISyntaxException, EntityNotFoundException {
+		
 		Entity goalEntity = getLatestEntity(kind, Integer.parseInt(id));
 
 		if (goalEntity == null) {
@@ -113,36 +121,13 @@ public class DatalutionDatastoreService {
 			ArrayList<Rule> rulesTemp = new ArrayList<Rule>();
 			ArrayList<String> rules = getAllRulesFromDatastore();
 			for (String rule : rules)
-				try {
-					rulesTemp.addAll(new ParserRuleToJava(new StringReader(rule))
+				rulesTemp.addAll(new ParserRuleToJava(new StringReader(rule))
 							.parseHeadRules());
-				} catch (parserRuletoJava.ParseException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
 
-			
-			try {
 				// generate rules for get command
-				rulesTemp.addAll(new ParserQueryToDatalogToJava(
+			rulesTemp.addAll(new ParserQueryToDatalogToJava(
 						new StringReader("get " + kind + ".id=" + id))
 						.getJavaRules(this));
-			} catch (InputMismatchException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			} catch (parserQueryToDatalogToJava.ParseException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			} catch (IOException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			} catch (parserRuletoJava.ParseException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			} catch (BadRequestException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
 			
 			Map<String, String> attributeMap = new TreeMap<String, String>();
 			attributeMap.put("kind", kind);
@@ -166,12 +151,7 @@ public class DatalutionDatastoreService {
 
 			@SuppressWarnings("unused")
 			ArrayList<String> answerString = null;
-			try {
-				answerString = migrate.writeAnswersInDatabase();
-			} catch (ParseException | IOException | URISyntaxException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			answerString = migrate.writeAnswersInDatabase();
 			
 			// besser : nicht nochmal aus datastore abfragen,
 			// sondern direkt aus answerString?
@@ -187,11 +167,10 @@ public class DatalutionDatastoreService {
 	 * if a schema change occurs (add, delete, copy, move)
 	 * @param command Command which triggers a schema change
 	 * @return generated Datalog rules saved in Datastore
-	 * @throws BadRequestException 
 	 */
 	public String saveSchemaChange(String command) throws InputMismatchException,
 			parserQueryToDatalogToJava.ParseException, IOException,
-			parserRuletoJava.ParseException, BadRequestException {
+			parserRuletoJava.ParseException{
 		String rulesStr = new ParserQueryToDatalogToJava(new StringReader(
 				command)).getDatalogRules(this);
 
@@ -303,19 +282,14 @@ public class DatalutionDatastoreService {
 	 * @param inputKind 
 	 * @param inputVersion
 	 * @return Schema from Datastore
+	 * @throws EntityNotFoundException 
 	 */	
-	public Schema getSchema(String kind, int version) {
+	public Schema getSchema(String kind, int version) throws EntityNotFoundException {
 		Key schemaKey = KeyFactory.createKey(
 				KeyFactory.createKey("Schema", kind),
 				"Schema" + kind, version);
 
-		Entity resultEntity = null;
-		try {
-			resultEntity = ds.get(schemaKey);
-		} catch (EntityNotFoundException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
+		Entity resultEntity = ds.get(schemaKey);
 		
 		if (resultEntity != null) {
 			Schema schema = new Schema();
@@ -453,17 +427,14 @@ public class DatalutionDatastoreService {
 	 * Write a datalog fact to Datastore; 
 	 * timestamp will be added automatically
 	 * @param datalog fact, e.g. "Player2(4,'Lisa',40)"
+	 * @throws ParseException 
+	 * @throws InputMismatchException 
+	 * @throws EntityNotFoundException 
 	 */	
-	public void putToDatabase(String datalogFact) {
+	public void putToDatabase(String datalogFact) throws InputMismatchException, ParseException, EntityNotFoundException {
 		Entity entity = null;
 		
-		try {
-			entity = new ParserForPut(new StringReader(datalogFact))
-					.getEntity();
-		} catch (InputMismatchException | ParseException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		entity = new ParserForPut(new StringReader(datalogFact)).getEntity();
 		
 		if (entity != null) {
 			Entity putEntity = new Entity(entity.getKind(), entity.getProperty("id")
@@ -498,7 +469,6 @@ public class DatalutionDatastoreService {
 		else
 			newTimestamp = latestSchema.getTimestamp() + 1;
 		Entity putSchema = new Entity("Schema" + kind,
-//				latestSchema.getVersion() + 1, KeyFactory.createKey("Schema",
 				newVersion, KeyFactory.createKey("Schema",
 						kind));
 		putSchema.setProperty("kind", kind);

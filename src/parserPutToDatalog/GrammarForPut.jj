@@ -4,231 +4,7 @@
  * This parser generates the entity which needs to be put to Datastore.
  * This put command can be triggered from Lazy Migration automatically,
  * as well as through a manual put within the user console.
- */
-options
-{
-  static = false;
-}
-
-PARSER_BEGIN(ParserForPut)
-package parserPutToDatalog;
-import datastore.DatalutionDatastoreService;
-import java.util.ArrayList;
-import java.util.InputMismatchException;
-import com.google.appengine.api.datastore.Entity;
-import datastore.Schema;
-
-public class ParserForPut
-{
-  private static int schemaVersion = 0;
-
-  private static ArrayList < String > attributes = null;
-
-  private static int counter = 0;
-
-  private static int length = 0;
-
-  private static DatalutionDatastoreService db = new DatalutionDatastoreService();
-
-  private static void getSchema(String kind, int version) throws InputMismatchException
-  {
-    Schema schema = null;
-    if (version == 0)
-    {
-      schema = db.getLatestSchema(kind);
-    }
-    else schema = db.getSchema(kind, version);
-    if (schema != null)
-    {
-      attributes = schema.getAttributesAsList();
-      length = attributes.size();
-      schemaVersion = schema.getVersion();
-    }
-  }
-}
-
-PARSER_END(ParserForPut)
-
-SKIP :
-{
-  " "
-| "\r"
-| "\t"
-| "\n"
-}
-
-TOKEN :
-{
-  < marks : "\"" >
-| < put : "put" >
-| < open : "{" >
-| < end : "}" >
-| < punkt : ":" >
-| < nullValue : "null" >
-| < string :
-    (
-      "'" (~[ "'" ])* "'"
-    )
-  |
-    (
-      "\"" (~[ "\"" ])* "\""
-    ) >
-| < number :
-    (< digit >)+
-    (
-      "." (< digit >)+
-    )? >
-| < digit : [ "0"-"9" ] >
-| < kindValue : < nameValue > (< nameValue >)* >
-| < nameValue :
-    [ "a"-"z" ]
-  | [ "A"-"Z" ]
-  | "_" >
-}
-
-Entity start() throws InputMismatchException :
-{
-  Entity value = null;
-  schemaVersion = 0;
-  attributes = null;
-  length = 0;
-}
-{
-  value = getEntity() < EOF >
-  {
-    return value;
-  }
-}
-
-Entity getEntity() throws InputMismatchException :
-{
-  Token kindToken = null;
-  Token schemaToken = null;
-  Token idToken = null;
-  Entity value = null;
-  boolean testOverflow = false;
-  int id = 0;
-  counter = 1;
-}
-{
-  (< put >
-  {
-    testOverflow = true;
-  }
-  )? (kindToken = < kindValue >) (schemaToken = < number >)? "(" (idToken = < number > ",")
-  {
-    if (idToken != null)
-    {
-      id = Integer.parseInt(idToken.toString());
-    }
-    else if (idToken == null)
-    {
-      throw new InputMismatchException("no id found");
-    }
-    if (schemaToken != null && testOverflow == false)
-    {
-      //put from lazy migration
-      schemaVersion = Integer.parseInt(schemaToken.toString());
-      getSchema(kindToken.toString(), schemaVersion);
-    }
-    else if (schemaToken != null && testOverflow == true)
-    {
-      throw new InputMismatchException("no numbers for value of kind allowed");
-    }
-    else
-    {
-      // manual put
-      getSchema(kindToken.toString(), 0);
-    }
-    if (attributes == null)
-    {
-      throw new InputMismatchException("no info for schema of " + kindToken.toString() + " found");
-    }
-  }
-  (
-    value = listOfValues
-    (
-      new Entity
-      (
-        kindToken.toString()+ schemaVersion
-      )
-    )
-  )?
-  ")" (".")?
-  {
-    if (value == null) throw new InputMismatchException("no attributes for " + kindToken.toString());
-    value.setProperty("id", id);
-    return value;
-  }
-}
-
-Entity listOfValues(Entity value) :
-{
-  Token valueOfToken = null;
-  Entity valueOfOtherToken = null;
-  String valueOne = "";
-  String name = null;
-  boolean nullvalue = false;
-  int numbers = 0;
-}
-{
-  (
-    valueOfToken = < string >
-  | valueOfToken = < number >
-  | valueOfToken = < nullValue >
-  )
-  {
-    if (counter < length)
-    {
-      if (valueOfToken.kind == string)
-      {
-        name = valueOfToken.toString();
-        name = name.substring(1, name.length() - 1);
-      }
-      else if (valueOfToken.kind == nullValue)
-      {
-        nullvalue = true;
-      }
-      else numbers = Integer.parseInt(valueOfToken.toString());
-      String attributename = attributes.get(counter);
-      valueOne = attributename.substring(1, attributename.length());
-      counter++;
-    }
-    else if (counter == length)
-    {
-      counter++;
-    }
-    else
-    {
-      counter++;
-      return null;
-    }
-  }
-  (
-    ","
-    (
-      valueOfOtherToken = listOfValues(value)
-    )
-  )*
-  {
-    if (valueOfOtherToken != null)
-    {
-      value = valueOfOtherToken;
-      if (name != null) value.setProperty(valueOne, name);
-      else if (nullvalue) value.setProperty(valueOne, null);
-      else if (valueOne == "")
-      {}
-      else value.setProperty(valueOne, numbers);
-      return value;
-    }
-    else
-    {
-      if (name != null) value.setProperty(valueOne, name);
-      else if (nullvalue) value.setProperty(valueOne, null);
-      else if (valueOne == "")
-      {}
-      else value.setProperty(valueOne, numbers);
-      return value;
-    }
-  }
-}
+ */options{  static = false;}PARSER_BEGIN(ParserForPut)package parserPutToDatalog;import datastore.DatalutionDatastoreService;import java.util.ArrayList;import java.util.InputMismatchException;import com.google.appengine.api.datastore.Entity;import datastore.Schema;import com.google.appengine.api.datastore.EntityNotFoundException;public class ParserForPut{  private static int schemaVersion = 0;  private static ArrayList < String > attributes = null;  private static int counter = 0;  private static int length = 0;  private static DatalutionDatastoreService db = new DatalutionDatastoreService();  private static void getSchema(String kind, int version) throws InputMismatchException, EntityNotFoundException  {    Schema schema = null;    if (version == 0)    {      schema = db.getLatestSchema(kind);    }    else schema = db.getSchema(kind, version);    if (schema != null)    {      attributes = schema.getAttributesAsList();      length = attributes.size();      schemaVersion = schema.getVersion();    }  }}PARSER_END(ParserForPut)SKIP :{  " "| "\r"| "\t"| "\n"}TOKEN :{  < marks : "\"" >| < put : "put" >| < open : "{" >| < end : "}" >| < punkt : ":" >| < nullValue : "null" >| < string :    (      "'" (~[ "'" ])* "'"    )  |    (      "\"" (~[ "\"" ])* "\""    ) >| < number :    (< digit >)+    (      "." (< digit >)+    )? >| < digit : [ "0"-"9" ] >| < kindValue : < nameValue > (< nameValue >)* >| < nameValue :    [ "a"-"z" ]  | [ "A"-"Z" ]  | "_" >}Entity start() throws InputMismatchException, EntityNotFoundException :{  Entity value = null;  schemaVersion = 0;  attributes = null;  length = 0;}{  value = getEntity() < EOF >  {    return value;  }}Entity getEntity() throws InputMismatchException, EntityNotFoundException :{  Token kindToken = null;  Token schemaToken = null;  Token idToken = null;  Entity putEntity = null;  boolean isManualPut = false;  int id = 0;  counter = 1;}{  (< put >  {    isManualPut = true;  }  )? (kindToken = < kindValue >) (schemaToken = < number >)? "(" (idToken = < number >) (",")?  {    if (idToken != null)    {      id = Integer.parseInt(idToken.toString());    }    else if (idToken == null)    {      throw new InputMismatchException("no id found");    }    if (schemaToken != null && isManualPut == false)    {      //put from lazy migration
+      schemaVersion = Integer.parseInt(schemaToken.toString());      getSchema(kindToken.toString(), schemaVersion);    }    else if (schemaToken != null && isManualPut == true)    {      throw new InputMismatchException("no numbers for value of kind allowed");    }    else    {      // manual put
+      getSchema(kindToken.toString(), 0);    }    if (attributes == null)    {      throw new InputMismatchException("no info for schema of " + kindToken.toString() + " found");    }  }  (    putEntity = listOfValues    (      new Entity      (        kindToken.toString()+ schemaVersion      )    )  )?  ")" (".")?  {    if (putEntity == null) putEntity = new Entity(kindToken.toString() + schemaVersion);    //throw new InputMismatchException("no attributes for " + kindToken.toString());
+    putEntity.setProperty("id", id);    return putEntity;  }}Entity listOfValues(Entity putEntity) :{  Token valueOfToken = null;  Entity valueOfOtherToken = null;  String valueOne = "";  String name = null;  boolean nullvalue = false;  int numbers = 0;}{  (    valueOfToken = < string >  | valueOfToken = < number >  | valueOfToken = < nullValue >  )  {    if (counter < length)    {      if (valueOfToken.kind == string)      {        name = valueOfToken.toString();        name = name.substring(1, name.length() - 1);      }      else if (valueOfToken.kind == nullValue)      {        nullvalue = true;      }      else numbers = Integer.parseInt(valueOfToken.toString());      String attributename = attributes.get(counter);      valueOne = attributename.substring(1, attributename.length());      counter++;    }    else if (counter == length)    {      counter++;    }    else    {      counter++;      return null;    }  }  (    ","    (      valueOfOtherToken = listOfValues(putEntity)    )  )*  {    if (valueOfOtherToken != null)    {      putEntity = valueOfOtherToken;      if (name != null) putEntity.setProperty(valueOne, name);      else if (nullvalue) putEntity.setProperty(valueOne, null);      else if (valueOne == "")      {}      else putEntity.setProperty(valueOne, numbers);      return putEntity;    }    else    {      if (name != null) putEntity.setProperty(valueOne, name);      else if (nullvalue) putEntity.setProperty(valueOne, null);      else if (valueOne == "")      {}      else putEntity.setProperty(valueOne, numbers);      return putEntity;    }  }}
