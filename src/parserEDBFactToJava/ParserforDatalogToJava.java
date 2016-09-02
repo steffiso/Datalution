@@ -15,12 +15,12 @@ public class ParserforDatalogToJava implements ParserforDatalogToJavaConstants {
   }
 
   final public Fact getFact() throws ParseException {
-  Token kind = null;
+  Token kindToken = null;
   Token schemaToken = null;
   String value = null;
   ArrayList < String > values = new ArrayList < String > ();
   Fact fact = null;
-    kind = jj_consume_token(kindValue);
+    kindToken = jj_consume_token(kindValue);
     schemaToken = jj_consume_token(number);
     jj_consume_token(12);
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
@@ -49,7 +49,7 @@ public class ParserforDatalogToJava implements ParserforDatalogToJavaConstants {
       ;
     }
     jj_consume_token(14);
-    fact = new Fact(kind.toString() + schemaToken.toString(), values);
+    fact = new Fact(kindToken.toString() + schemaToken.toString(), values);
     {if (true) return fact;}
     throw new Error("Missing return statement in function");
   }

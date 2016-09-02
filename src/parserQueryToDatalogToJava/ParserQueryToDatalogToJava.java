@@ -8,6 +8,7 @@ import datalog.Rule;
 import parserRuletoJava.ParserRuleToJava;
 import java.util.InputMismatchException;
 import java.io.IOException;
+import com.google.api.server.spi.response.BadRequestException;
 
 public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaConstants {
   private String kindStr;
@@ -16,11 +17,9 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
 
   private int id;
 
-  private String rulesStr;
+  private String rulesStr;  private static DatalutionDatastoreService dds;
 
   private static ArrayList < Rule > rules = new ArrayList < Rule > ();
-
-  private static DatalutionDatastoreService db;
 
   private static Schema currentSchemaFrom = null;
 
@@ -54,7 +53,7 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
 
   private static Schema getCurrentSchema(String kind) throws InputMismatchException, IOException
   {
-    Schema currentSchema = db.getLatestSchema(kind);
+    Schema currentSchema = dds.getLatestSchema(kind);
     if (currentSchema != null) return currentSchema;
     else return null;
   }
@@ -89,9 +88,9 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
   {
     ArrayList < String > currentSchemaAttributes = null;
     if (currentSchemaFrom.getKind().equals(kind))
-        currentSchemaAttributes = currentSchemaFrom.getAttributes();
+        currentSchemaAttributes = currentSchemaFrom.getAttributesAsList();
     else if (currentSchemaTo.getKind().equals(kind))
-        currentSchemaAttributes = currentSchemaTo.getAttributes();
+        currentSchemaAttributes = currentSchemaTo.getAttributesAsList();
 
     if (currentSchemaAttributes == null)
     {
@@ -111,8 +110,8 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
   private static ArrayList < String > getNewSchemaAdd(String kind, String value) throws InputMismatchException, IOException
   {
     ArrayList < String > currentSchemaAttributes = null;
-    if (currentSchemaFrom.getKind().equals(kind)) currentSchemaAttributes = currentSchemaFrom.getAttributes();
-    else if (currentSchemaTo.getKind().equals(kind)) currentSchemaAttributes = currentSchemaTo.getAttributes();
+    if (currentSchemaFrom.getKind().equals(kind)) currentSchemaAttributes = currentSchemaFrom.getAttributesAsList();
+    else if (currentSchemaTo.getKind().equals(kind)) currentSchemaAttributes = currentSchemaTo.getAttributesAsList();
     if (currentSchemaAttributes == null)
     {
       throw new InputMismatchException("no info for schema of " + kind + " found");
@@ -127,24 +126,24 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
   private static void saveCurrentSchema(String kind, ArrayList < String > newSchema) throws InputMismatchException, IOException
   {
     ArrayList < String > currentSchemaAttributes = null;
-    if (currentSchemaFrom.getKind().equals(kind)) currentSchemaAttributes = currentSchemaFrom.getAttributes();
-    else if (currentSchemaTo.getKind().equals(kind)) currentSchemaAttributes = currentSchemaTo.getAttributes();
+    if (currentSchemaFrom.getKind().equals(kind)) currentSchemaAttributes = currentSchemaFrom.getAttributesAsList();
+    else if (currentSchemaTo.getKind().equals(kind)) currentSchemaAttributes = currentSchemaTo.getAttributesAsList();
     if (currentSchemaAttributes == null)
     {
       throw new InputMismatchException("no info for schema of " + kind + " found");
     }
     else
     {
-      db.saveCurrentSchema(kind, newSchema);
+      dds.saveCurrentSchema(kind, newSchema);
     }
   }
 
   public String getAttributeName(String kind, int schemaNumber, int pos) throws InputMismatchException, IOException
   {
-    Schema currentSchema = db.getSchema(kind, schemaNumber);
+    Schema currentSchema = dds.getSchema(kind, schemaNumber);
     if (currentSchema != null)
     {
-      ArrayList < String > attributes = currentSchema.getAttributes();
+      ArrayList < String > attributes = currentSchema.getAttributesAsList();
       String value = attributes.get(pos);
       return value;
     }
@@ -156,21 +155,21 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
 
   private static boolean propertyExists(Schema schema, String value) throws InputMismatchException, IOException
   {
-    return schema.getAttributes().contains("?" + value);
+    return schema.getAttributesAsList().contains("?" + value);
   }
 
-  final public String getDatalogRules(DatalutionDatastoreService db) throws ParseException, InputMismatchException, IOException, parserRuletoJava.ParseException {
+  final public String getDatalogRules(DatalutionDatastoreService dds) throws ParseException, InputMismatchException, IOException, parserRuletoJava.ParseException, BadRequestException {
   String value = null;
-  this.db = db;
+  this.dds = dds;
     value = start();
     jj_consume_token(0);
     {if (true) return value;}
     throw new Error("Missing return statement in function");
   }
 
-  final public ArrayList < Rule > getJavaRules(DatalutionDatastoreService db) throws ParseException, InputMismatchException, IOException, parserRuletoJava.ParseException {
+  final public ArrayList < Rule > getJavaRules(DatalutionDatastoreService dds) throws ParseException, InputMismatchException, IOException, parserRuletoJava.ParseException, BadRequestException {
   String value = null;
-  this.db = db;
+  this.dds = dds;
     value = start();
     jj_consume_token(0);
     rulesStr = value;
@@ -178,7 +177,7 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
     throw new Error("Missing return statement in function");
   }
 
-  final public String start() throws ParseException, InputMismatchException, IOException, parserRuletoJava.ParseException {
+  final public String start() throws ParseException, InputMismatchException, IOException, parserRuletoJava.ParseException, BadRequestException {
   String value = null;
   rules = new ArrayList < Rule > ();
   currentSchemaFrom = null;
@@ -208,7 +207,7 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
     throw new Error("Missing return statement in function");
   }
 
-  final public String get() throws ParseException, InputMismatchException, IOException, parserRuletoJava.ParseException {
+  final public String get() throws ParseException, BadRequestException, IOException, parserRuletoJava.ParseException {
   Token kindToken = null;
   Token idToken = null;
   Token propertyToken = null;
@@ -229,7 +228,7 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
       jj_consume_token(-1);
       throw new ParseException();
     }
-    if (!propertyToken.toString().equals("id")) {if (true) throw new InputMismatchException("only id for get");}
+    if (!propertyToken.toString().equals("id")) {if (true) throw new BadRequestException("only id for get");}
     String kind = kindToken.toString();
     String idTemp;
     if (idToken.kind == string)
@@ -248,9 +247,9 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
     getSchemaFromDB(kind, "");
     if (currentSchemaFrom == null)
     {
-      {if (true) throw new InputMismatchException("no info for schema of " + kind + " found");}
+      {if (true) throw new BadRequestException("no info for schema of " + kind + " found");}
     }
-    ArrayList < String > schema = currentSchemaFrom.getAttributes();
+    ArrayList < String > schema = currentSchemaFrom.getAttributesAsList();
     int currentVersion = currentSchemaFrom.getVersion();
     String headRule = "get" + kind + currentVersion + "(" + schemaToString(schema) + ",?ts):-$"
         + kind + currentVersion + "(" + schemaToString(schema) + ",?ts),?id=" + id + ".\u005cn";
@@ -302,7 +301,7 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
     {
       {if (true) throw new InputMismatchException("attribute for " + kind + " already exists");}
     }
-    ArrayList < String > currentSchema = currentSchemaFrom.getAttributes();
+    ArrayList < String > currentSchema = currentSchemaFrom.getAttributesAsList();
     ArrayList < String > newSchema = getNewSchemaAdd(kind, "?" + propertyName);
     int currentSchemaVersion = currentSchemaFrom.getVersion();
     int newSchemaVersion = currentSchemaVersion + 1;
@@ -336,7 +335,7 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
     int currentVersion = currentSchemaFrom.getVersion();
     int newVersion = currentVersion + 1;
     String headRules = kind + newVersion + "(" + schemaToString(newSchema) + ",?ts):-$"
-        + kind + currentVersion + "(" + schemaToString(currentSchemaFrom.getAttributes()) + ",?ts).\u005cn";
+        + kind + currentVersion + "(" + schemaToString(currentSchemaFrom.getAttributesAsList()) + ",?ts).\u005cn";
     saveCurrentSchema(kind, newSchema);
     rules.addAll((new ParserRuleToJava(new StringReader(headRules))).parseHeadRules());
     {if (true) return headRules;}
@@ -414,15 +413,15 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
     ArrayList < String > schemaToNew = getNewSchemaAdd(kindTo, "?" + attribute);
     ArrayList < String > schemaToNew2 = getNewSchemaAdd(kindTo, "null");
     saveCurrentSchema(kindTo, schemaToNew);
-    saveCurrentSchema(kindFrom, currentSchemaFrom.getAttributes());
+    saveCurrentSchema(kindFrom, currentSchemaFrom.getAttributesAsList());
     int currentSchemaVersionTo = currentSchemaTo.getVersion();
     int currentSchemaVersionFrom = currentSchemaFrom.getVersion();
     int newSchemaVersionTo = currentSchemaVersionTo + 1;
     int newSchemaVersionFrom = currentSchemaVersionFrom + 1;
     schemaToNew = addAttributeNr(schemaToNew, 1, "?" + attribute);
     schemaToNew2 = addAttributeNr(schemaToNew2, 1, "");
-    ArrayList<String > schemaTo = addAttributeNr(currentSchemaTo.getAttributes(), 1, "");
-   ArrayList<String > schemaFrom = addAttributeNr(currentSchemaFrom.getAttributes(), 2, "");
+    ArrayList<String > schemaTo = addAttributeNr(currentSchemaTo.getAttributesAsList(), 1, "");
+   ArrayList<String > schemaFrom = addAttributeNr(currentSchemaFrom.getAttributesAsList(), 2, "");
     String condition = "?" + conditionFrom + "2 = " + "?" + conditionTo + "1";
     String headRules = kindTo + newSchemaVersionTo + "(" + schemaToString(schemaToNew) + ",?ts1):-$"
         + kindTo + currentSchemaVersionTo + "(" + schemaToString(schemaTo) + ",?ts1),$"
@@ -521,8 +520,8 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
     int newSchemaVersionTo = currentSchemaVersionTo + 1;
     schemaToNew = addAttributeNr(schemaToNew, 1, "?" + attribute);
     schemaToNew2 = addAttributeNr(schemaToNew2, 1, "");
-    ArrayList<String > schemaTo = addAttributeNr(currentSchemaTo.getAttributes(), 1, "");
-    ArrayList<String > schemaFrom = addAttributeNr(currentSchemaFrom.getAttributes(), 2, "");
+    ArrayList<String > schemaTo = addAttributeNr(currentSchemaTo.getAttributesAsList(), 1, "");
+    ArrayList<String > schemaFrom = addAttributeNr(currentSchemaFrom.getAttributesAsList(), 2, "");
     schemaFromNew = addAttributeNr(schemaFromNew, 2, "");
     String condition = "?" + conditionFrom + "2 = " + "?" + conditionTo + "1";
     String headRules = kindTo + newSchemaVersionTo + "(" + schemaToString(schemaToNew) + ",?ts1):-$"

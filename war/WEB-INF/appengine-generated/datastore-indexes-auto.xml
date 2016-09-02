@@ -1,9 +1,19 @@
-<!-- Indices written at Sun, 28 Aug 2016 17:08:53 CEST -->
+<!-- Indices written at Fri, 2 Sep 2016 14:37:11 CEST -->
 
 <datastore-indexes>
 
+    <!-- Used 15 times in query history -->
+    <datastore-index kind="SchemaJob" ancestor="true" source="auto">
+        <property name="ts" direction="desc"/>
+    </datastore-index>
+
+    <!-- Used 5 times in query history -->
+    <datastore-index kind="Job2" ancestor="true" source="auto">
+        <property name="ts" direction="desc"/>
+    </datastore-index>
+
     <!-- Used 1 time in query history -->
-    <datastore-index kind="SchemaK" ancestor="true" source="auto">
+    <datastore-index kind="Job1" ancestor="true" source="auto">
         <property name="ts" direction="desc"/>
     </datastore-index>
 

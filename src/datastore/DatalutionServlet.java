@@ -1,5 +1,10 @@
 package datastore;
-
+/**
+ * This servlet provides the user console for Datalution with Datastore.
+ * Supported commands (with a brief example): 
+ * - get (e.g. "get Player.id=1")
+ * - put (e.g. "put Player(1,"Lisa S.",200)")
+ */
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
@@ -14,15 +19,16 @@ import parserPutToDatalog.ParseException;
 import parserPutToDatalog.ParserForPut;
 import parserQueryToDatalogToJava.ParserQueryToDatalogToJava;
 
+import com.google.api.server.spi.response.BadRequestException;
 import com.google.appengine.api.datastore.Entity;
 
 import datalog.Rule;
 
 @SuppressWarnings("serial")
 public class DatalutionServlet extends HttpServlet {
-	private int userid;
+	
+	private int userId;
 	private String kind;
-	private String userIdStr;
 	private String getCommand;
 	private String putCommand;
 	private DatalutionDatastoreService dds;
@@ -32,6 +38,7 @@ public class DatalutionServlet extends HttpServlet {
 
 		dds = new DatalutionDatastoreService();
 		Entity childPlayer = null;
+		
 		if (req.getParameter("putCommand") != null
 				&& !req.getParameter("putCommand").isEmpty()) {
 			putCommand = req.getParameter("putCommand");
@@ -40,66 +47,89 @@ public class DatalutionServlet extends HttpServlet {
 						.start();
 				dds.put(childPlayer);
 			} catch (InputMismatchException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				resp.getWriter().println("Error:");
+				resp.getWriter().println(e.getMessage());
+				resp.setHeader("Refresh", "5;url=/user");
 			} catch (ParseException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				resp.getWriter().println("Error:");
+				resp.getWriter().println(e.getMessage());
+				resp.setHeader("Refresh", "5;url=/user");
 			}
-		}
-
+		}		
 		resp.sendRedirect("/user");
-
 	}
 
 	public void doGet(HttpServletRequest req, HttpServletResponse resp)
-			throws IOException, ServletException {
-		resp.setContentType("text/html");
+			throws IOException, ServletException{
+		
 		dds = new DatalutionDatastoreService();
 		Entity userPlayer = null;
 		RequestDispatcher jsp = null;
+		resp.setContentType("text/html");
+		
 		if (req.getParameter("getCommand") != null
 				&& !req.getParameter("getCommand").isEmpty()) {
 			getCommand = req.getParameter("getCommand");
 			ParserQueryToDatalogToJava parserget = new ParserQueryToDatalogToJava(
 					new StringReader(getCommand));
+			
 			try {
 				@SuppressWarnings("unused")
 				ArrayList<Rule> rules = parserget.getJavaRules(dds);
 			} catch (InputMismatchException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				resp.getWriter().println("Error:");
+				resp.getWriter().println(e.getMessage());
+				resp.setHeader("Refresh", "5;url=/user");
 			} catch (parserQueryToDatalogToJava.ParseException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				resp.getWriter().println("Error:");
+				resp.getWriter().println(e.getMessage());
+				resp.setHeader("Refresh", "5;url=/user");
 			} catch (parserRuletoJava.ParseException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				resp.getWriter().println("Error:");
+				resp.getWriter().println(e.getMessage());
+				resp.setHeader("Refresh", "5;url=/user");
+			} catch (BadRequestException e) {
+				resp.getWriter().println("Error:");
+				resp.getWriter().println(e.getMessage());
+				resp.setHeader("Refresh", "5;url=/user");
 			}
-			userid = parserget.getId();
+			
+			userId = parserget.getId();
 			kind = parserget.getKind();
-			userIdStr = parserget.getIdStr();
+			
 		} else
 			getCommand = null;
 
 		if (getCommand != null) {
-			userPlayer = dds.get(kind, userIdStr);
+			userPlayer = dds.get(kind, Integer.toString(userId));
 
 			if (userPlayer != null) {
-				Schema latestSchema = dds.getLatestSchema(kind);
-				String values = "[";
-				for (String s : latestSchema.getAttributes())
-					values = values + s + "="
-							+ userPlayer.getProperty(s.substring(1)) + ", ";
-				values = values + "ts=" + userPlayer.getProperty("ts") + "]";
-				req.setAttribute("values", values);
+				String resultEntityStr = formatEntityToOutputString(userPlayer);
+				req.setAttribute("values", resultEntityStr);
 			}
 
-			req.setAttribute("username", userid);
+			req.setAttribute("username", userId);
 		}
 
-		jsp = req.getRequestDispatcher("/WEB-INF/start.jsp");
+		jsp = req.getRequestDispatcher("/WEB-INF/user.jsp");
 		jsp.forward(req, resp);
+	}
+	
+	/**
+   	* Gets a datastore entity to format
+   	*
+   	* @return result entity in readable form
+   	*/
+	public String formatEntityToOutputString(Entity entity) {
+		Schema latestSchema = dds.getLatestSchema(kind);		
+		String outputString = "[";
+		for (String attribute : latestSchema.getAttributesAsList())
+			outputString = outputString + attribute + "="
+					+ entity.getProperty(attribute.substring(1)) + ", ";
+		
+		outputString = outputString + "ts=" + entity.getProperty("ts") + "]";
+		
+		return outputString;
 	}
 
 }

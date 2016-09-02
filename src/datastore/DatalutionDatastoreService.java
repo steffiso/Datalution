@@ -1,5 +1,10 @@
 package datastore;
-
+/**
+ * This class provides the methods
+ * to interact with Google App Engine Datastore.
+ * It can be used similar to the DatastoreService with
+ * core methods put(Entity e) and get(String kind, int id)
+ */
 import java.io.IOException;
 import java.io.StringReader;
 import java.net.URISyntaxException;
@@ -12,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import com.google.api.server.spi.response.BadRequestException;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
@@ -50,6 +56,473 @@ public class DatalutionDatastoreService {
 		this.ds = ds;
 	}
 
+	/**
+	 * Manual put to Datastore (executed from UserServlet).
+	 * (each manual put will be executed in an extra transaction)
+	 * @param entity Entity object to put to Datastore
+	 */
+	public void put(Entity entity) {
+		String kind = entity.getKind();
+		int id = (int) entity.getProperty("id");
+
+		int retries = 3;
+		while (true) {
+			Transaction txn = ds.beginTransaction();
+			try {
+				int newTS = getLatestTimestamp(txn, kind,
+						id) + 1;
+				Entity newEntity = new Entity(kind,
+						id + Integer.toString(newTS),
+						KeyFactory.createKey(
+								kind.replaceAll("\\d", ""),
+								id));
+				newEntity.setPropertiesFrom(entity);
+				newEntity.setProperty("ts", newTS);
+				
+				// put entity inside open/current transaction
+				ds.put(txn, newEntity);
+				txn.commit();
+				break;
+			} catch (ConcurrentModificationException e) {
+				if (retries == 0) {
+					throw e;
+				}
+				// Allow retry to occur
+				--retries;
+			} finally {
+				if (txn.isActive()) {
+					txn.rollback();
+				}
+			}
+		}
+	}
+
+	/**
+	 * Get an entity from Datastore with current kind and id
+	 * (lazy migration with Datalog will be started if necessary)
+	 * @param kind Kind of needed entity (e.g. Player) 
+	 * @param id Id of needed entity (e.g. 1)
+	 * @return latest entity (even after lazy migration)
+	 */
+	public Entity get(String kind, String id) {
+		Entity goalEntity = getLatestEntity(kind, Integer.parseInt(id));
+
+		if (goalEntity == null) {
+			// no entity with latest schemaversion found
+			// => execute Lazy Migration
+			ArrayList<Rule> rulesTemp = new ArrayList<Rule>();
+			ArrayList<String> rules = getAllRulesFromDatastore();
+			for (String rule : rules)
+				try {
+					rulesTemp.addAll(new ParserRuleToJava(new StringReader(rule))
+							.parseHeadRules());
+				} catch (parserRuletoJava.ParseException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+
+			
+			try {
+				// generate rules for get command
+				rulesTemp.addAll(new ParserQueryToDatalogToJava(
+						new StringReader("get " + kind + ".id=" + id))
+						.getJavaRules(this));
+			} catch (InputMismatchException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			} catch (parserQueryToDatalogToJava.ParseException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			} catch (parserRuletoJava.ParseException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			} catch (BadRequestException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			
+			Map<String, String> attributeMap = new TreeMap<String, String>();
+			attributeMap.put("kind", kind);
+			attributeMap.put("position", "0");
+			attributeMap.put("value", id);
+			ArrayList<Map<String, String>> uniMap = new ArrayList<Map<String, String>>();
+			uniMap.add(attributeMap);
+			ArrayList<String> schema;
+			Predicate goal;
+			schema = getLatestSchema(kind).getAttributesAsList();
+
+			schema.add("?ts");
+
+			goal = new Predicate("get" + kind + getLatestSchemaVersion(kind),
+					schema.size(), schema);
+
+			ArrayList<Fact> facts = new ArrayList<Fact>();
+
+			LazyMigration migrate = new LazyMigration(facts, rulesTemp, goal,
+					uniMap);
+
+			@SuppressWarnings("unused")
+			ArrayList<String> answerString = null;
+			try {
+				answerString = migrate.writeAnswersInDatabase();
+			} catch (ParseException | IOException | URISyntaxException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			// besser : nicht nochmal aus datastore abfragen,
+			// sondern direkt aus answerString?
+			goalEntity = getLatestEntity(kind, Integer.parseInt(id));
+
+		}
+
+		return goalEntity;
+	}
+	
+	/**
+	 * Generates rules and adds them to Datastore 
+	 * if a schema change occurs (add, delete, copy, move)
+	 * @param command Command which triggers a schema change
+	 * @return generated Datalog rules saved in Datastore
+	 * @throws BadRequestException 
+	 */
+	public String saveSchemaChange(String command) throws InputMismatchException,
+			parserQueryToDatalogToJava.ParseException, IOException,
+			parserRuletoJava.ParseException, BadRequestException {
+		String rulesStr = new ParserQueryToDatalogToJava(new StringReader(
+				command)).getDatalogRules(this);
+
+		if (!rulesStr.equals("")) {
+			HashMap<String, String> rulesMap = new HashMap<String, String>();
+			List<String> rulesSplit = new ArrayList<String>(
+					Arrays.asList(rulesStr.split("\n")));
+			for (String rule : rulesSplit) {
+				String head = rule.substring(0, rule.indexOf("("));
+				// generate a hash map with Key for Datastore rule entities
+				// and the corresponding rules as String
+				if (rulesMap.containsKey("Rules" + head)) {
+					String oldValue = rulesMap.get("Rules" + head);
+					rulesMap.put("Rules" + head, oldValue + "\n" + rule);
+				} else {
+					rulesMap.put("Rules" + head, rule);
+				}
+			}
+			addRulesToDatastore(rulesMap);
+		}
+		return rulesStr;
+	}
+	
+	/**
+	 * @return List of datalog rules 
+	 */
+	public ArrayList<String> getAllRulesFromDatastore() {
+		List<Entity> rulesEntity = null;
+		Query q = new Query().setAncestor(KeyFactory.createKey("Rules", 1));
+		rulesEntity = ds.prepare(q).asList(FetchOptions.Builder.withDefaults());
+
+		if (rulesEntity != null) {
+			String rules = "";
+			for (Entity e : rulesEntity)
+				rules = rules + (String) e.getProperty("value");
+
+			ArrayList<String> rulesList = new ArrayList<String>();
+
+			if (!rules.equals("")) {
+				rulesList = new ArrayList<String>(
+						Arrays.asList(rules.split("\n")));
+			}
+
+			return rulesList;
+		} else
+			return null;
+	}
+	
+	/**
+	 * Returns all rules with input key from Memcache.
+	 * If no matching rules exist in Memcache, load matching rules 
+	 * from Datastore in Memcache
+	 * @param key Kind with Schemaversion to load all rules starting with this key
+	 * @return Specific rules as a List (e.g. all rules starting with "Player2")
+	 */
+	public ArrayList<String> getRulesFromMemcache(String key) {
+		MemcacheService syncCache = MemcacheServiceFactory.getMemcacheService();
+		ArrayList<String> rulesList = new ArrayList<String>();
+		String rules = "";
+		rules = (String) syncCache.get("Rules" + key);
+		
+		if (!rules.equals("")) {
+			// rule with given key exists in memcache
+			rulesList = new ArrayList<String>(
+					Arrays.asList(rules.split("\n")));
+		} else {
+			// copy rule from datastore to memcache
+			Map<String, String> map = new HashMap<String, String>();
+			String value = "";
+			Query q = new Query("Rules" + key).setAncestor(KeyFactory
+					.createKey("Rules", 1));
+			List<Entity> rulesEntity = ds.prepare(q).asList(
+					FetchOptions.Builder.withDefaults());
+			for (Entity e : rulesEntity) {
+				value = value + e.getProperty("value") + "\n";
+			}
+			map.put("Rules" + key, value);
+			addRulesToDatastore(map);
+		}
+		return rulesList;
+	}
+
+	/**
+	 * add rules from inputMap to datastore and memcache
+	 * @param newRules as a Map<String,String> (e.g. key="RulesPlayer2",
+	 * value="Player2(?id,?name,?score,?ts):-$Player1(?id,?name,?ts)."
+	 */	
+	public void addRulesToDatastore(Map<String, String> newRules) {
+		MemcacheService syncCache = MemcacheServiceFactory.getMemcacheService();
+
+		for (Map.Entry<String, String> entry : newRules.entrySet()) {
+			String rulesKey = entry.getKey();
+			String rulesValue = entry.getValue();
+
+			Entity ruleEntity = new Entity(rulesKey, KeyFactory.createKey(
+					"Rules", 1));
+			ruleEntity.setProperty("value", rulesValue);
+			ds.put(ruleEntity);
+
+			IdentifiableValue oldRules = syncCache.getIdentifiable(rulesKey);
+			if (oldRules == null) {
+				// key doesn't exist yet => put it in cache
+				syncCache.put(rulesKey, rulesValue);
+			}
+		}
+	}
+
+	/**
+	 * @param inputKind 
+	 * @param inputVersion
+	 * @return Schema from Datastore
+	 */	
+	public Schema getSchema(String kind, int version) {
+		Key schemaKey = KeyFactory.createKey(
+				KeyFactory.createKey("Schema", kind),
+				"Schema" + kind, version);
+
+		Entity resultEntity = null;
+		try {
+			resultEntity = ds.get(schemaKey);
+		} catch (EntityNotFoundException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		
+		if (resultEntity != null) {
+			Schema schema = new Schema();
+			schema.setAttributes(resultEntity.getProperty("value").toString());
+			schema.setKind(resultEntity.getProperty("kind").toString());
+			schema.setVersion(Integer.parseInt(resultEntity.getProperty("version")
+					.toString()));
+			schema.setTimestamp(Integer
+					.parseInt(resultEntity.getProperty("ts").toString()));
+			return schema;
+		} else
+			return null;
+	}
+
+	/**
+	 * @param kind of entity (e.g. Player)
+	 * @return latest schema version for specific kind
+	 */	
+	public int getLatestSchemaVersion(String kind) {
+		Schema latestSchema = getLatestSchema(kind);
+		int latestSchemaVersion = 0;
+		if (latestSchema != null) {
+			latestSchemaVersion = latestSchema.getVersion();
+		}
+
+		return latestSchemaVersion;
+	}
+
+	/**
+	 * @param kind of entity (e.g. Player)
+	 * @return latest Schema object for specific kind
+	 */	
+	public Schema getLatestSchema(String kind) {
+		Schema latestSchema = new Schema();
+
+		Query q = new Query("Schema" + kind).setAncestor(
+				KeyFactory.createKey("Schema", kind)).addSort("ts",
+				SortDirection.DESCENDING);
+		List<Entity> schema = ds.prepare(q).asList(
+				FetchOptions.Builder.withDefaults().limit(1));
+
+		if (schema.isEmpty()) {
+			return null;
+		} else {
+			latestSchema.setAttributes(schema.get(0).getProperty("value")
+					.toString());
+			latestSchema.setKind(schema.get(0).getProperty("kind").toString());
+			latestSchema.setVersion(Integer.parseInt(schema.get(0)
+					.getProperty("version").toString()));
+			latestSchema.setTimestamp(Integer.parseInt(schema.get(0)
+					.getProperty("ts").toString()));
+			return latestSchema;
+		}
+	}
+
+	/**
+	 * @param kind of entity (e.g. Player)
+	 * @param id 
+	 * @return latest entity of specific kind with specific id
+	 */	
+	public Entity getLatestEntity(String kind, int id) {
+		Schema schema = null;
+		int version = 0;
+		String kindWithoutVersionNr = kind.replaceAll("\\d", "");
+		if (!kindWithoutVersionNr.equals(kind)) {
+			version = Integer.parseInt(kind.replaceAll("[^0-9]", ""));
+		}
+		if (version == 0) {
+			schema = getLatestSchema(kindWithoutVersionNr);
+			version = schema.getVersion();
+		}
+
+		Query kindQuery = new Query(kindWithoutVersionNr
+				+ Integer.toString(version)).setAncestor(
+				KeyFactory.createKey(kindWithoutVersionNr, id)).addSort("ts",
+				SortDirection.DESCENDING);
+		List<Entity> latestEntity = ds.prepare(kindQuery).asList(
+				FetchOptions.Builder.withDefaults().limit(1));
+
+		if (latestEntity.isEmpty())
+			return null;
+		else
+			return latestEntity.get(0);
+	}
+
+	/**
+	 * @param kind of entity (e.g. Player)
+	 * @param id 
+	 * @return highest timestamp for specific kind and id
+	 */	
+	public int getLatestTimestamp(String kind, int id) {
+		int ts = 0;
+		Schema latestSchema = getLatestSchema(kind.replaceAll("\\d", ""));
+		int version = latestSchema.getVersion();
+
+		Query kindQuery = new Query(kind + Integer.toString(version))
+				.setAncestor(
+						KeyFactory.createKey(kind.replaceAll("\\d", ""), id))
+				.addSort("ts", SortDirection.DESCENDING);
+		List<Entity> latestEntity = ds.prepare(kindQuery).asList(
+				FetchOptions.Builder.withDefaults().limit(1));
+
+		if (latestEntity.isEmpty())
+			return 0;
+		else {
+			ts = ((Long) latestEntity.get(0).getProperty("ts")).intValue();
+			return ts;
+		}
+	}
+
+	/**
+	 * Get highest timestamp inside a specific transaction
+	 * @param kind of entity (e.g. Player)
+	 * @param id 
+	 * @return highest timestamp for specific kind and id
+	 */	
+	public int getLatestTimestamp(Transaction txn, String kind, int id) {
+		int ts = 0;
+
+		Query kindQuery = new Query(kind).setAncestor(
+				KeyFactory.createKey(kind.replaceAll("\\d", ""), id)).addSort(
+				"ts", SortDirection.DESCENDING);
+		List<Entity> latestEntity = ds.prepare(txn, kindQuery).asList(
+				FetchOptions.Builder.withDefaults().limit(1));
+
+		if (latestEntity.isEmpty())
+			return 0;
+		else {
+			ts = ((Long) latestEntity.get(0).getProperty("ts")).intValue();
+			return ts;
+		}
+	}
+
+	/**
+	 * Write a datalog fact to Datastore; 
+	 * timestamp will be added automatically
+	 * @param datalog fact, e.g. "Player2(4,'Lisa',40)"
+	 */	
+	public void putToDatabase(String datalogFact) {
+		Entity entity = null;
+		
+		try {
+			entity = new ParserForPut(new StringReader(datalogFact))
+					.getEntity();
+		} catch (InputMismatchException | ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		if (entity != null) {
+			Entity putEntity = new Entity(entity.getKind(), entity.getProperty("id")
+					+ "0", KeyFactory.createKey(
+					entity.getKind().replaceAll("\\d", ""),
+					(int) entity.getProperty("id")));
+			putEntity.setPropertiesFrom(entity);
+			putEntity.setProperty("ts", (int) 0);
+			ds.put(putEntity);
+		}
+	}
+
+	/**
+	 * Write a schema to Datastore; 
+	 * @param kind of entity (e.g. Player)
+	 * @param newAttributesList list of attribute names (with prefix "?")
+	 */	
+	public void saveCurrentSchema(String kind, ArrayList<String> newAttributesList) {
+		String newAttributes = "";
+		
+		for (String s : newAttributesList) {
+			newAttributes = newAttributes + s + ",";
+		}
+		
+		newAttributes = newAttributes.substring(0, newAttributes.length() - 1);
+		long newVersion = getLatestSchemaVersion(kind) + 1;
+		Schema latestSchema = getLatestSchema(kind);
+		long newTimestamp;
+		if (latestSchema == null){
+			newTimestamp = 1;
+		}
+		else
+			newTimestamp = latestSchema.getTimestamp() + 1;
+		Entity putSchema = new Entity("Schema" + kind,
+//				latestSchema.getVersion() + 1, KeyFactory.createKey("Schema",
+				newVersion, KeyFactory.createKey("Schema",
+						kind));
+		putSchema.setProperty("kind", kind);
+		putSchema.setProperty("version", newVersion);
+		putSchema.setProperty("value", newAttributes);
+		putSchema.setProperty("ts", newTimestamp);
+		ds.put(putSchema);
+	}
+	
+	/**
+	 * This method adds a new entity kind to Datastore with default attribute "id"
+	 * @param kind New entity type
+	 */
+	public void addNewEntity(String kind) {
+		ArrayList<String> attributes = new ArrayList<String>();
+		attributes.add("?id");
+		saveCurrentSchema(kind, attributes);
+	}
+	
+	/**
+	 * This method adds start/test entities to Datastore.
+	 * Only for test cases - three Player and three Mission 
+	 * entities will be added
+	 */
 	public void addStartEntities() {
 		Entity schemaPlayer1 = new Entity("SchemaPlayer", 1,
 				KeyFactory.createKey("Schema", "Player"));
@@ -123,390 +596,6 @@ public class DatalutionDatastoreService {
 		ds.put(mission1);
 		ds.put(mission2);
 		ds.put(mission3);
-	}
-
-	public void put(Entity entity) {
-		int retries = 3;
-		while (true) {
-			String kind=entity.getKind();
-			int id=(int) entity.getProperty("id");
-			Transaction txn = ds.beginTransaction();
-			try {
-				
-				int ts = getLatestTimestamp(txn, kind,
-						id) + 1;
-				Entity newEntity = new Entity(kind,
-						id + Integer.toString(ts),
-						KeyFactory.createKey(
-								kind.replaceAll("\\d", ""),
-								id));
-				newEntity.setPropertiesFrom(entity);
-				newEntity.setProperty("ts", ts);
-				ds.put(txn, newEntity);
-				txn.commit();
-				break;
-			} catch (ConcurrentModificationException e) {
-				if (retries == 0) {
-					throw e;
-				}
-				// Allow retry to occur
-				--retries;
-			} finally {
-				if (txn.isActive()) {
-					txn.rollback();
-				}
-			}
-		}
-	}
-
-	public Entity get(String kind, String id) {
-		Entity goalEntity = getLatestEntity(kind, Integer.parseInt(id));
-
-		if (goalEntity == null) {
-			ArrayList<Rule> rulesTemp = new ArrayList<Rule>();
-			ArrayList<datastore.Rule> rules = getAllRulesFromDatastore();
-			for (datastore.Rule r : rules)
-				try {
-					rulesTemp.addAll(new ParserRuleToJava(new StringReader(r
-							.getValue())).parseHeadRules());
-				} catch (parserRuletoJava.ParseException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
-
-			// start lazy migration
-			try {
-				rulesTemp.addAll(new ParserQueryToDatalogToJava(
-						new StringReader("get " + kind + ".id=" + id))
-						.getJavaRules(this));
-			} catch (InputMismatchException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			} catch (parserQueryToDatalogToJava.ParseException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			} catch (IOException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			} catch (parserRuletoJava.ParseException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
-			Map<String, String> attributeMap = new TreeMap<String, String>();
-			attributeMap.put("kind", kind);
-			attributeMap.put("position", "0");
-			attributeMap.put("value", id);
-			ArrayList<Map<String, String>> uniMap = new ArrayList<Map<String, String>>();
-			uniMap.add(attributeMap);
-			ArrayList<String> schema;
-			Predicate goal;
-			schema = getLatestSchema(kind).getAttributes();
-
-			schema.add("?ts");
-
-			goal = new Predicate("get" + kind + getLatestSchemaVersion(kind),
-					schema.size(), schema);
-
-			ArrayList<Fact> facts = new ArrayList<Fact>();
-
-			LazyMigration migrate = new LazyMigration(facts, rulesTemp, goal,
-					uniMap);
-
-			@SuppressWarnings("unused")
-			ArrayList<String> answerString = null;
-			try {
-				answerString = migrate.writeAnswersInDatabase();
-			} catch (ParseException | IOException | URISyntaxException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-
-			// besser : nicht nochmal aus datastore abfragen,
-			// sondern direkt aus answerString?
-			goalEntity = getLatestEntity(kind, Integer.parseInt(id));
-
-		}
-
-		return goalEntity;
-	}
-
-	public String changeSchema(String command) throws InputMismatchException,
-			parserQueryToDatalogToJava.ParseException, IOException,
-			parserRuletoJava.ParseException {
-		String rulesStr = new ParserQueryToDatalogToJava(new StringReader(
-				command)).getDatalogRules(this);
-
-		if (!rulesStr.equals("")) {
-			HashMap<String, String> rulesMap = new HashMap<String, String>();
-			List<String> rulesSplit = new ArrayList<String>(
-					Arrays.asList(rulesStr.split("\n")));
-			for (String rule : rulesSplit) {
-				String head = rule.substring(0, rule.indexOf("("));
-				if (rulesMap.containsKey("Rules" + head)) {
-					String oldValue = rulesMap.get("Rules" + head);
-					rulesMap.put("Rules" + head, oldValue + "\n" + rule);
-				} else {
-					rulesMap.put("Rules" + head, rule);
-				}
-			}
-			addRules(rulesMap);
-		}
-		return rulesStr;
-	}
-
-	public ArrayList<datastore.Rule> getAllRulesFromDatastore() {
-
-		List<Entity> rulesEntity = null;
-		Query q = new Query().setAncestor(KeyFactory.createKey("Rules", 1));
-		rulesEntity = ds.prepare(q).asList(FetchOptions.Builder.withDefaults());
-
-		if (rulesEntity != null) {
-			String rules = "";
-			for (Entity e : rulesEntity)
-				rules = rules + (String) e.getProperty("value");
-
-			ArrayList<datastore.Rule> rulesList = new ArrayList<datastore.Rule>();
-
-			if (!rules.equals("")) {
-				ArrayList<String> rulesStringList = new ArrayList<String>(
-						Arrays.asList(rules.split("\n")));
-				for (String rule : rulesStringList) {
-					datastore.Rule r = new datastore.Rule();
-					r.setValue(rule);
-					rulesList.add(r);
-				}
-			}
-
-			return rulesList;
-		} else
-			return null;
-	}
-
-	// input key, e.g. "Player2"
-	// return specific rules, e.g. all rules starting with "Player2"
-	public ArrayList<datastore.Rule> getRulesFromMemcache(String key) {
-		MemcacheService syncCache = MemcacheServiceFactory.getMemcacheService();
-		ArrayList<datastore.Rule> rulesList = new ArrayList<datastore.Rule>();
-		String rules = "";
-
-		rules = (String) syncCache.get("Rules" + key);
-		if (!rules.equals("")) {
-			// rule with given key exists in memcache
-			ArrayList<String> rulesStringList = new ArrayList<String>(
-					Arrays.asList(rules.split("\n")));
-			for (String rule : rulesStringList) {
-				datastore.Rule r = new datastore.Rule();
-				r.setValue(rule);
-				rulesList.add(r);
-			}
-		} else {
-			// put rule from datastore in memcache
-			Map<String, String> map = new HashMap<String, String>();
-			String value = "";
-			Query q = new Query("Rules" + key).setAncestor(KeyFactory
-					.createKey("Rules", 1));
-			List<Entity> rulesEntity = ds.prepare(q).asList(
-					FetchOptions.Builder.withDefaults());
-			for (Entity e : rulesEntity) {
-				value = value + e.getProperty("value") + "\n";
-			}
-			map.put("Rules" + key, value);
-			addRules(map);
-		}
-		return rulesList;
-	}
-
-	// input map example: key="RulesPlayer2",
-	// value="Player2(?id,?name,?score,?ts):-$Player1(?id,?name,?ts)."
-	// add rules from inputMap to datastore and memcache
-	public void addRules(Map<String, String> newRules) {
-		MemcacheService syncCache = MemcacheServiceFactory.getMemcacheService();
-
-		for (Map.Entry<String, String> entry : newRules.entrySet()) {
-			String rulesKey = entry.getKey();
-			String rulesValue = entry.getValue();
-
-			Entity ruleEntity = new Entity(rulesKey, KeyFactory.createKey(
-					"Rules", 1));
-			ruleEntity.setProperty("value", rulesValue);
-			ds.put(ruleEntity);
-
-			IdentifiableValue oldRules = syncCache.getIdentifiable(rulesKey);
-			if (oldRules == null) {
-				// Key doesn't exist. We can safely put it in cache.
-				syncCache.put(rulesKey, rulesValue);
-			}
-		}
-	}
-
-	// return the schema for kind and version
-	public Schema getSchema(String inputKind, int inputVersion) {
-		Key schemaKey = KeyFactory.createKey(
-				KeyFactory.createKey("Schema", inputKind),
-				"Schema" + inputKind, inputVersion);
-
-		Entity e = null;
-		try {
-			e = ds.get(schemaKey);
-		} catch (EntityNotFoundException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-		if (e != null) {
-			Schema schema = new Schema();
-			schema.setAttributesString(e.getProperty("value").toString());
-			schema.setKind(e.getProperty("kind").toString());
-			schema.setVersion(Integer.parseInt(e.getProperty("version")
-					.toString()));
-			schema.setTimestamp(Integer
-					.parseInt(e.getProperty("ts").toString()));
-			return schema;
-		} else
-			return null;
-	}
-
-	// returns the latest schema version number for the given kind
-	public int getLatestSchemaVersion(String inputKind) {
-		Schema latestSchema = getLatestSchema(inputKind);
-		int latestSchemaVersion = 0;
-		if (latestSchema != null) {
-			latestSchemaVersion = latestSchema.getVersion();
-		}
-
-		return latestSchemaVersion;
-	}
-
-	// returns the latest schema for input kind
-	public Schema getLatestSchema(String kind) {
-		Schema latestSchema = new Schema();
-
-		Query q = new Query("Schema" + kind).setAncestor(
-				KeyFactory.createKey("Schema", kind)).addSort("ts",
-				SortDirection.DESCENDING);
-		List<Entity> schema = ds.prepare(q).asList(
-				FetchOptions.Builder.withDefaults().limit(1));
-
-		if (schema.isEmpty()) {
-			return null;
-		} else {
-			latestSchema.setAttributesString(schema.get(0).getProperty("value")
-					.toString());
-			latestSchema.setKind(schema.get(0).getProperty("kind").toString());
-			latestSchema.setVersion(Integer.parseInt(schema.get(0)
-					.getProperty("version").toString()));
-			latestSchema.setTimestamp(Integer.parseInt(schema.get(0)
-					.getProperty("ts").toString()));
-			return latestSchema;
-		}
-	}
-
-	// returns the entity with the highest timestamp for input kind and specific
-	// id
-	public Entity getLatestEntity(String kind, int id) {
-		Schema schema = null;
-		int version = 0;
-		String kindWithoutVersionNr = kind.replaceAll("\\d", "");
-		if (!kindWithoutVersionNr.equals(kind)) {
-			version = Integer.parseInt(kind.replaceAll("[^0-9]", ""));
-		}
-		if (version == 0) {
-			schema = getLatestSchema(kindWithoutVersionNr);
-			version = schema.getVersion();
-		}
-
-		Query kindQuery = new Query(kindWithoutVersionNr
-				+ Integer.toString(version)).setAncestor(
-				KeyFactory.createKey(kindWithoutVersionNr, id)).addSort("ts",
-				SortDirection.DESCENDING);
-		List<Entity> latestEntity = ds.prepare(kindQuery).asList(
-				FetchOptions.Builder.withDefaults().limit(1));
-
-		if (latestEntity.isEmpty())
-			return null;
-		else
-			return latestEntity.get(0);
-	}
-
-	// returns the highest timestamp for a specific kind and id
-	public int getLatestTimestamp(String kind, int id) {
-		int ts = 0;
-		Schema latestSchema = getLatestSchema(kind.replaceAll("\\d", ""));
-		int version = latestSchema.getVersion();
-
-		Query kindQuery = new Query(kind + Integer.toString(version))
-				.setAncestor(
-						KeyFactory.createKey(kind.replaceAll("\\d", ""), id))
-				.addSort("ts", SortDirection.DESCENDING);
-		List<Entity> latestEntity = ds.prepare(kindQuery).asList(
-				FetchOptions.Builder.withDefaults().limit(1));
-
-		if (latestEntity.isEmpty())
-			return 0;
-		else {
-			ts = ((Long) latestEntity.get(0).getProperty("ts")).intValue();
-			return ts;
-		}
-	}
-
-	public int getLatestTimestamp(Transaction txn, String kind, int id) {
-		int ts = 0;
-
-		Query kindQuery = new Query(kind).setAncestor(
-				KeyFactory.createKey(kind.replaceAll("\\d", ""), id)).addSort(
-				"ts", SortDirection.DESCENDING);
-		List<Entity> latestEntity = ds.prepare(txn, kindQuery).asList(
-				FetchOptions.Builder.withDefaults().limit(1));
-
-		if (latestEntity.isEmpty())
-			return 0;
-		else {
-			ts = ((Long) latestEntity.get(0).getProperty("ts")).intValue();
-			return ts;
-		}
-	}
-
-	// write the datalogFact to datastore
-	// input: "Player2(4,'Lisa',40)"
-	// timestamp will be added automatically
-	public void putToDatabase(String datalogFact) {
-		Entity entity = null;
-		try {
-			entity = new ParserForPut(new StringReader(datalogFact))
-					.getEntity();
-		} catch (InputMismatchException | ParseException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		if (entity != null) {
-			Entity e1 = new Entity(entity.getKind(), entity.getProperty("id")
-					+ "0", KeyFactory.createKey(
-					entity.getKind().replaceAll("\\d", ""),
-					(int) entity.getProperty("id")));
-			e1.setPropertiesFrom(entity);
-			e1.setProperty("ts", (int) 0);
-			ds.put(e1);
-		}
-
-	}
-
-	// put a schema entity to datastore
-	public void saveCurrentSchema(String kind, ArrayList<String> newSchemaList) {
-		String newSchema = "";
-		for (String s : newSchemaList) {
-			newSchema = newSchema + s + ",";
-		}
-		newSchema = newSchema.substring(0, newSchema.length() - 1);
-		long newVersion = getLatestSchemaVersion(kind) + 1;
-		Schema latestSchema = getLatestSchema(kind);
-
-		Entity schema = new Entity("Schema" + kind,
-				latestSchema.getVersion() + 1, KeyFactory.createKey("Schema",
-						kind));
-		schema.setProperty("kind", kind);
-		schema.setProperty("version", newVersion);
-		schema.setProperty("value", newSchema);
-		schema.setProperty("ts", latestSchema.getTimestamp() + 1);
-		ds.put(schema);
 	}
 
 }

@@ -15,6 +15,7 @@ import org.junit.Test;
 import parserQueryToDatalogToJava.ParseException;
 import parserQueryToDatalogToJava.ParserQueryToDatalogToJava;
 
+import com.google.api.server.spi.response.BadRequestException;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
@@ -55,13 +56,13 @@ public class ComplexQuery {
 
 		for (String input : inputList)
 			try {
-				dds.changeSchema(input);
+				dds.saveSchemaChange(input);
 			} catch (InputMismatchException | ParseException | IOException
-					| parserRuletoJava.ParseException e) {
+					| parserRuletoJava.ParseException | BadRequestException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-
+		
 		String[] attributes = getAttributesFromGetCommand("get Player.id=1", dds);
 		Entity userPlayer = dds.get(attributes[0], attributes[1]);
 		assertEquals("{score=100, ts=0, id=1, points=150}", userPlayer
@@ -81,7 +82,7 @@ public class ComplexQuery {
 		try {
 			parserget.getJavaRules(dds);
 		} catch (InputMismatchException | ParseException | IOException
-				| parserRuletoJava.ParseException e) {
+				| parserRuletoJava.ParseException  | BadRequestException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}

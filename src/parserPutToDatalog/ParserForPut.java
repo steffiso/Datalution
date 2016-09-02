@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.InputMismatchException;
 import com.google.appengine.api.datastore.Entity;
 import datastore.Schema;
-import com.google.appengine.api.datastore.KeyFactory;
 
 public class ParserForPut implements ParserForPutConstants {
   private static int schemaVersion = 0;
@@ -15,8 +14,6 @@ public class ParserForPut implements ParserForPutConstants {
   private static int counter = 0;
 
   private static int length = 0;
-
-  private static int newTS = 0;
 
   private static DatalutionDatastoreService db = new DatalutionDatastoreService();
 
@@ -30,7 +27,7 @@ public class ParserForPut implements ParserForPutConstants {
     else schema = db.getSchema(kind, version);
     if (schema != null)
     {
-      attributes = schema.getAttributes();
+      attributes = schema.getAttributesAsList();
       length = attributes.size();
       schemaVersion = schema.getVersion();
     }
@@ -48,7 +45,7 @@ public class ParserForPut implements ParserForPutConstants {
   }
 
   final public Entity getEntity() throws ParseException, InputMismatchException {
-  Token kind = null;
+  Token kindToken = null;
   Token schemaToken = null;
   Token idToken = null;
   Entity value = null;
@@ -64,7 +61,7 @@ public class ParserForPut implements ParserForPutConstants {
       jj_la1[0] = jj_gen;
       ;
     }
-    kind = jj_consume_token(kindValue);
+    kindToken = jj_consume_token(kindValue);
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case number:
       schemaToken = jj_consume_token(number);
@@ -88,8 +85,7 @@ public class ParserForPut implements ParserForPutConstants {
     {
       //put from lazy migration
       schemaVersion = Integer.parseInt(schemaToken.toString());
-      getSchema(kind.toString(), schemaVersion);
-      //newTS = 0;
+      getSchema(kindToken.toString(), schemaVersion);
     }
     else if (schemaToken != null && testOverflow == true)
     {
@@ -98,12 +94,11 @@ public class ParserForPut implements ParserForPutConstants {
     else
     {
       // manual put
-      getSchema(kind.toString(), 0);
-      // newTS = db.getLatestTimestamp(kind.toString(), id) + 1;
+      getSchema(kindToken.toString(), 0);
     }
     if (attributes == null)
     {
-      {if (true) throw new InputMismatchException("no info for schema of " + kind.toString() + " found");}
+      {if (true) throw new InputMismatchException("no info for schema of " + kindToken.toString() + " found");}
     }
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case nullValue:
@@ -111,11 +106,7 @@ public class ParserForPut implements ParserForPutConstants {
     case number:
       value = listOfValues(new Entity
             (
-              kind.toString()+ schemaVersion
-              //,idToken.toString()+ Integer.toString(newTS), KeyFactory.createKey
-              //        (
-              //          kind.toString(), id
-              //        )
+              kindToken.toString()+ schemaVersion
             ));
       break;
     default:
@@ -131,9 +122,8 @@ public class ParserForPut implements ParserForPutConstants {
       jj_la1[3] = jj_gen;
       ;
     }
-    if (value == null) {if (true) throw new InputMismatchException("no attributes for " + kind.toString());}
+    if (value == null) {if (true) throw new InputMismatchException("no attributes for " + kindToken.toString());}
     value.setProperty("id", id);
-    //value.setProperty("ts", newTS);
     {if (true) return value;}
     throw new Error("Missing return statement in function");
   }
