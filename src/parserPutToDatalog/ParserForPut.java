@@ -6,6 +6,7 @@ import java.util.InputMismatchException;
 import com.google.appengine.api.datastore.Entity;
 import datastore.Schema;
 import com.google.appengine.api.datastore.EntityNotFoundException;
+import com.google.appengine.api.datastore.KeyFactory;
 
 public class ParserForPut implements ParserForPutConstants {
   private static int schemaVersion = 0;
@@ -32,6 +33,8 @@ public class ParserForPut implements ParserForPutConstants {
       length = attributes.size();
       schemaVersion = schema.getVersion();
     }
+    else
+        throw new EntityNotFoundException(KeyFactory.createKey("Schema",kind));
   }
 
   final public Entity start() throws ParseException, InputMismatchException, EntityNotFoundException {

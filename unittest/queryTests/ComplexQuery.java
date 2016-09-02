@@ -59,7 +59,7 @@ public class ComplexQuery {
 			try {
 				dds.saveSchemaChange(input);
 			} catch (InputMismatchException | ParseException | IOException
-					| parserRuletoJava.ParseException e) {
+					| parserRuletoJava.ParseException | EntityNotFoundException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
@@ -98,7 +98,7 @@ public class ComplexQuery {
 		try {
 			parserget.getJavaRules(dds);
 		} catch (InputMismatchException | ParseException | IOException
-				| parserRuletoJava.ParseException  e) {
+				| parserRuletoJava.ParseException | EntityNotFoundException  e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}

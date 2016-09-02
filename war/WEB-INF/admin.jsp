@@ -17,11 +17,8 @@ span.tab {
 		<p>
 			<input type="submit" value="Execute">
 		</p>		
-	</form>
-				
-	<form method="get">			
-      	<p> Generated Rules: </p>
-      	<textarea rows="5" cols="200" >${rules}</textarea>
+		<p> Result: </p>
+      	<textarea rows="5" cols="200" >${result}</textarea>
 	</form>
 </body>
 </html>

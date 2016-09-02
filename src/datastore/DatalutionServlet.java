@@ -39,21 +39,22 @@ public class DatalutionServlet extends HttpServlet {
 
 		dds = new DatalutionDatastoreService();
 		Entity childPlayer = null;
+		RequestDispatcher jsp = null;
+		putCommand = req.getParameter("putCommand");
 		
-		if (req.getParameter("putCommand") != null
-				&& !req.getParameter("putCommand").isEmpty()) {
-			putCommand = req.getParameter("putCommand");
+		if (putCommand != null && !putCommand.isEmpty()) {
 			try {
 				childPlayer = new ParserForPut(new StringReader(putCommand))
 						.start();
 				dds.put(childPlayer);
+				req.setAttribute("result", putCommand + " was successful!");
 			} catch (InputMismatchException | ParseException | EntityNotFoundException e) {
-				resp.getWriter().println("Error:");
-				resp.getWriter().println(e.getMessage());
-				resp.setHeader("Refresh", "5;url=/user");
+				req.setAttribute("result", e.getMessage());
 			}
 		}		
-		resp.sendRedirect("/user");
+		
+		jsp = req.getRequestDispatcher("/WEB-INF/user.jsp");
+		jsp.forward(req, resp);
 	}
 
 	public void doGet(HttpServletRequest req, HttpServletResponse resp)
@@ -62,46 +63,45 @@ public class DatalutionServlet extends HttpServlet {
 		dds = new DatalutionDatastoreService();
 		Entity userPlayer = null;
 		RequestDispatcher jsp = null;
+		kind = null;
+		userId = 0;
 		resp.setContentType("text/html");
+		getCommand = req.getParameter("getCommand");
 		
-		if (req.getParameter("getCommand") != null
-				&& !req.getParameter("getCommand").isEmpty()) {
-			getCommand = req.getParameter("getCommand");
+		if (getCommand != null && !getCommand.isEmpty()) {
 			ParserQueryToDatalogToJava parserget = new ParserQueryToDatalogToJava(
 					new StringReader(getCommand));
 			
 			try {
 				@SuppressWarnings("unused")
-				ArrayList<Rule> rules = parserget.getJavaRules(dds);
+				ArrayList<Rule> rules = parserget.getJavaRules(dds);				
+				userId = parserget.getId();
+				kind = parserget.getKind();
+				req.setAttribute("username", userId);
 			} catch (InputMismatchException | parserQueryToDatalogToJava.ParseException |
-					parserRuletoJava.ParseException e) {
-				resp.getWriter().println("Error:");
-				resp.getWriter().println(e.getMessage());
-				resp.setHeader("Refresh", "5;url=/user");
-			} 
-			
-			userId = parserget.getId();
-			kind = parserget.getKind();
-			
-		} else
-			getCommand = null;
+					parserRuletoJava.ParseException | EntityNotFoundException e) {
+				req.setAttribute("result", e.getMessage());
+			} 			
+		}
 
-		if (getCommand != null) {
+		if (getCommand != null && kind != null) {
 			try {
 				userPlayer = dds.get(kind, Integer.toString(userId));
 			} catch (InputMismatchException | parserQueryToDatalogToJava.ParseException
-					| parserRuletoJava.ParseException | ParseException | URISyntaxException | EntityNotFoundException e) {
-				resp.getWriter().println("Error:");
-				resp.getWriter().println(e.getMessage());
-				resp.setHeader("Refresh", "5;url=/user");
+					| parserRuletoJava.ParseException | ParseException | 
+					URISyntaxException | EntityNotFoundException e) {
+				req.setAttribute("result", e.toString());
 			}
 
 			if (userPlayer != null) {
-				String resultEntityStr = formatEntityToOutputString(userPlayer);
-				req.setAttribute("values", resultEntityStr);
+				String resultEntityStr = "";
+				try {
+					resultEntityStr = formatEntityToOutputString(userPlayer);
+					req.setAttribute("result", resultEntityStr);
+				} catch (EntityNotFoundException e) {
+					req.setAttribute("result", e.getMessage());
+				}
 			}
-
-			req.setAttribute("username", userId);
 		}
 
 		jsp = req.getRequestDispatcher("/WEB-INF/user.jsp");
@@ -109,11 +109,12 @@ public class DatalutionServlet extends HttpServlet {
 	}
 	
 	/**
-   	* Gets a datastore entity to format
+   	* Format a datastore entity to an output String
    	*
    	* @return result entity in readable form
+	* @throws EntityNotFoundException 
    	*/
-	public String formatEntityToOutputString(Entity entity) {
+	public String formatEntityToOutputString(Entity entity) throws EntityNotFoundException {
 		Schema latestSchema = dds.getLatestSchema(kind);		
 		String outputString = "[";
 		for (String attribute : latestSchema.getAttributesAsList())

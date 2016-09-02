@@ -167,10 +167,11 @@ public class DatalutionDatastoreService {
 	 * if a schema change occurs (add, delete, copy, move)
 	 * @param command Command which triggers a schema change
 	 * @return generated Datalog rules saved in Datastore
+	 * @throws EntityNotFoundException 
 	 */
 	public String saveSchemaChange(String command) throws InputMismatchException,
 			parserQueryToDatalogToJava.ParseException, IOException,
-			parserRuletoJava.ParseException{
+			parserRuletoJava.ParseException, EntityNotFoundException{
 		String rulesStr = new ParserQueryToDatalogToJava(new StringReader(
 				command)).getDatalogRules(this);
 
@@ -307,8 +308,9 @@ public class DatalutionDatastoreService {
 	/**
 	 * @param kind of entity (e.g. Player)
 	 * @return latest schema version for specific kind
+	 * @throws EntityNotFoundException 
 	 */	
-	public int getLatestSchemaVersion(String kind) {
+	public int getLatestSchemaVersion(String kind) throws EntityNotFoundException {
 		Schema latestSchema = getLatestSchema(kind);
 		int latestSchemaVersion = 0;
 		if (latestSchema != null) {
@@ -321,8 +323,9 @@ public class DatalutionDatastoreService {
 	/**
 	 * @param kind of entity (e.g. Player)
 	 * @return latest Schema object for specific kind
+	 * @throws EntityNotFoundException 
 	 */	
-	public Schema getLatestSchema(String kind) {
+	public Schema getLatestSchema(String kind) throws EntityNotFoundException {
 		Schema latestSchema = new Schema();
 
 		Query q = new Query("Schema" + kind).setAncestor(
@@ -332,7 +335,7 @@ public class DatalutionDatastoreService {
 				FetchOptions.Builder.withDefaults().limit(1));
 
 		if (schema.isEmpty()) {
-			return null;
+			throw new EntityNotFoundException(KeyFactory.createKey("Schema",kind));
 		} else {
 			latestSchema.setAttributes(schema.get(0).getProperty("value")
 					.toString());
@@ -349,26 +352,28 @@ public class DatalutionDatastoreService {
 	 * @param kind of entity (e.g. Player)
 	 * @param id 
 	 * @return latest entity of specific kind with specific id
+	 * @throws EntityNotFoundException 
 	 */	
-	public Entity getLatestEntity(String kind, int id) {
+	public Entity getLatestEntity(String kind, int id) throws EntityNotFoundException {
 		Schema schema = null;
 		int version = 0;
 		String kindWithoutVersionNr = kind.replaceAll("\\d", "");
+		
 		if (!kindWithoutVersionNr.equals(kind)) {
 			version = Integer.parseInt(kind.replaceAll("[^0-9]", ""));
 		}
 		if (version == 0) {
 			schema = getLatestSchema(kindWithoutVersionNr);
 			version = schema.getVersion();
-		}
-
+		}		
+		
 		Query kindQuery = new Query(kindWithoutVersionNr
 				+ Integer.toString(version)).setAncestor(
 				KeyFactory.createKey(kindWithoutVersionNr, id)).addSort("ts",
 				SortDirection.DESCENDING);
 		List<Entity> latestEntity = ds.prepare(kindQuery).asList(
 				FetchOptions.Builder.withDefaults().limit(1));
-
+		
 		if (latestEntity.isEmpty())
 			return null;
 		else
@@ -379,8 +384,9 @@ public class DatalutionDatastoreService {
 	 * @param kind of entity (e.g. Player)
 	 * @param id 
 	 * @return highest timestamp for specific kind and id
+	 * @throws EntityNotFoundException 
 	 */	
-	public int getLatestTimestamp(String kind, int id) {
+	public int getLatestTimestamp(String kind, int id) throws EntityNotFoundException {
 		int ts = 0;
 		Schema latestSchema = getLatestSchema(kind.replaceAll("\\d", ""));
 		int version = latestSchema.getVersion();
@@ -451,6 +457,7 @@ public class DatalutionDatastoreService {
 	 * Write a schema to Datastore; 
 	 * @param kind of entity (e.g. Player)
 	 * @param newAttributesList list of attribute names (with prefix "?")
+	 * @throws EntityNotFoundException 
 	 */	
 	public void saveCurrentSchema(String kind, ArrayList<String> newAttributesList) {
 		String newAttributes = "";
@@ -460,8 +467,18 @@ public class DatalutionDatastoreService {
 		}
 		
 		newAttributes = newAttributes.substring(0, newAttributes.length() - 1);
-		long newVersion = getLatestSchemaVersion(kind) + 1;
-		Schema latestSchema = getLatestSchema(kind);
+		long newVersion;
+		Schema latestSchema;
+		try {
+			newVersion = getLatestSchemaVersion(kind) + 1;
+			latestSchema = getLatestSchema(kind);
+		} catch (EntityNotFoundException e) {
+			// no schema version for this kind exists
+			// => new entity type
+			latestSchema = null;
+			newVersion = 1;
+		}
+		
 		long newTimestamp;
 		if (latestSchema == null){
 			newTimestamp = 1;
@@ -481,11 +498,16 @@ public class DatalutionDatastoreService {
 	/**
 	 * This method adds a new entity kind to Datastore with default attribute "id"
 	 * @param kind New entity type
+	 * @throws EntityNotFoundException 
 	 */
-	public void addNewEntity(String kind) {
+	public void addNewEntity(String kind) throws EntityNotFoundException, InputMismatchException {
 		ArrayList<String> attributes = new ArrayList<String>();
 		attributes.add("?id");
-		saveCurrentSchema(kind, attributes);
+		if (!kind.replaceAll("\\d", "").equals(kind)) {
+			throw new InputMismatchException("Numbers are not allowed in kind");
+		}
+		else 				
+			saveCurrentSchema(kind, attributes);
 	}
 	
 	/**

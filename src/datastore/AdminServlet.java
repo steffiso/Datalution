@@ -17,6 +17,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.google.appengine.api.datastore.EntityNotFoundException;
+
 import parserQueryToDatalogToJava.ParseException;
 
 @SuppressWarnings("serial")
@@ -24,7 +26,9 @@ public class AdminServlet extends HttpServlet {
 
 	private String rulesStr = "";
 			
-	public void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException{			
+	public void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException, ServletException{	
+		
+		RequestDispatcher jsp = null;
 		String command = req.getParameter("command");
 		DatalutionDatastoreService dds = new DatalutionDatastoreService();
 		rulesStr = "";		
@@ -32,39 +36,39 @@ public class AdminServlet extends HttpServlet {
 		if (command != null){
 			if (command.equals("start")) {
 				dds.addStartEntities();	
-				resp.sendRedirect("/admin");
+				req.setAttribute("result", "Start entities added to Datastore!");
 			}
 			else if (command.startsWith("new")) {
 				String [] newEntity = command.split(" ");
 				if (newEntity.length == 2)
-					dds.addNewEntity(newEntity[1]);
+					try {
+						dds.addNewEntity(newEntity[1]);
+						req.setAttribute("result", "Adding new entity type " + newEntity[1] + " was successful! "
+								+ "Now you can put entities within the user console!");
+					} catch (EntityNotFoundException | InputMismatchException e) {
+						req.setAttribute("result", e.getMessage());
+					}
 			}
 			else {
 				try {
 					rulesStr = dds.saveSchemaChange(command);
-					resp.sendRedirect("/admin");
+					req.setAttribute("result", "Schema change was successful! \nGenerated Datalog rules:\n" + rulesStr);
 				} catch (InputMismatchException | ParseException | 
-						parserRuletoJava.ParseException e) {
-					resp.getWriter().println("Error:");
-					resp.getWriter().println(e.getMessage());
-					resp.setHeader("Refresh", "5;url=/admin");
+						parserRuletoJava.ParseException | EntityNotFoundException e) {
+					req.setAttribute("result", e.getMessage());
 				}
 			}
-		}
-	}
-		
-	public void doGet(HttpServletRequest req, HttpServletResponse resp)
-			throws IOException, ServletException {
-		
-		resp.setContentType("text/html");
-		RequestDispatcher jsp = null;
-		
-		if (!rulesStr.equals("")) {
-			req.setAttribute("rules", rulesStr);
-		}
-		
+		}		
+
 		jsp = req.getRequestDispatcher("/WEB-INF/admin.jsp");
 		jsp.forward(req, resp);
 	}
-
+	
+	public void doGet(HttpServletRequest req, HttpServletResponse resp)
+			throws IOException, ServletException{
+		
+		RequestDispatcher jsp = null;
+		jsp = req.getRequestDispatcher("/WEB-INF/admin.jsp");
+		jsp.forward(req, resp);
+	}
 }

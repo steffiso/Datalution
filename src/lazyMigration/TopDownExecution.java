@@ -60,7 +60,7 @@ public class TopDownExecution extends MigrationExecution {
 	}
 	
 	// Test for top down approach for only one rule
-	public ArrayList<ArrayList<String>> getAnswer(Rule rule) {
+	public ArrayList<ArrayList<String>> getAnswer(Rule rule) throws NumberFormatException, EntityNotFoundException {
 
 		rulesRename(rule);
 		for (Predicate p : rule.getPredicates()) {
@@ -89,121 +89,121 @@ public class TopDownExecution extends MigrationExecution {
 	public ArrayList<Fact> getAnswers() throws ParseException, IOException,
 	URISyntaxException, InputMismatchException, EntityNotFoundException {
 
-ArrayList<Fact> answer = new ArrayList<Fact>();
-/*
- * if (existIDForKind(unificationMap.get(0).get("kind"), unificationMap
- * .get(0).get("value"))) {
- */
-putFacts = new ArrayList<Fact>();
-ArrayList<Rule> childrenRules = new ArrayList<Rule>();
-for (Rule r : rules) {
-	// look for needed goal predicate in rule heads
-	// + unify found rules
-	Predicate ruleHead = r.getHead();
-	if (ruleHead.getKind().equals(goal.getKind())
-			&& ruleHead.getNumberSchemeEntries() == goal
-					.getNumberSchemeEntries()) {
-		Rule unifiedRule = unifyRule(goal, r);
-		childrenRules.add(unifiedRule);
+	ArrayList<Fact> answer = new ArrayList<Fact>();
+	/*
+	 * if (existIDForKind(unificationMap.get(0).get("kind"), unificationMap
+	 * .get(0).get("value"))) {
+	 */
+	putFacts = new ArrayList<Fact>();
+	ArrayList<Rule> childrenRules = new ArrayList<Rule>();
+	for (Rule r : rules) {
+		// look for needed goal predicate in rule heads
+		// + unify found rules
+		Predicate ruleHead = r.getHead();
+		if (ruleHead.getKind().equals(goal.getKind())
+				&& ruleHead.getNumberSchemeEntries() == goal
+						.getNumberSchemeEntries()) {
+			Rule unifiedRule = unifyRule(goal, r);
+			childrenRules.add(unifiedRule);
+		}
 	}
-}
-
-// initialize next level of ruleGoalTree with unified
-// children rules and save the results in Predicate subgoal
-tree = new RuleGoalTree(childrenRules);
-goal.setRelation(getAnswersForSubtree(tree));
-
-// add results to temp fact list
-if (goal.getRelation() != null) {
-	for (ArrayList<String> str : goal.getRelation()) {
-		answer.add(new Fact(goal.getKind(), str));
+	
+	// initialize next level of ruleGoalTree with unified
+	// children rules and save the results in Predicate subgoal
+	tree = new RuleGoalTree(childrenRules);
+	goal.setRelation(getAnswersForSubtree(tree));
+	
+	// add results to temp fact list
+	if (goal.getRelation() != null) {
+		for (ArrayList<String> str : goal.getRelation()) {
+			answer.add(new Fact(goal.getKind(), str));
+		}
 	}
-}
-
-// add put facts to put list
-if (putFacts.size() != 0) {
-	for (Fact f : putFacts) {
-		putFactToDB(f);
-		numberOfPuts++;
+	
+	// add put facts to put list
+	if (putFacts.size() != 0) {
+		for (Fact f : putFacts) {
+			putFactToDB(f);
+			numberOfPuts++;
+		}
+	
 	}
-
-}
-// }
-return answer;
-
-}
-
-private ArrayList<ArrayList<String>> getAnswersForSubtree(RuleGoalTree tree) {
-ArrayList<ArrayList<String>> result = new ArrayList<ArrayList<String>>();
-
-for (Rule childRule : tree.getChildren()) {
-	Predicate resultPredicate = null;
-	RuleBody body = childRule.getRuleBody();
-
-	for (Predicate subgoal : body.getPredicates()) {
-		// subgoal already exists in fact list?
-		if (!getFacts(subgoal)) {
-			ArrayList<Rule> unifiedChildrenRules = new ArrayList<Rule>();
-			for (Rule r : rules) {
-				// look for needed goal predicate in rule heads
-				// + unify found rules
-				Predicate ruleHead = r.getHead();
-				if (ruleHead.getKind().equals(subgoal.getKind())
-						&& ruleHead.getNumberSchemeEntries() == subgoal
-								.getNumberSchemeEntries()) {
-					Rule unifiedRule = unifyRule(subgoal, r);
-					unifiedChildrenRules.add(unifiedRule);
+	// }
+	return answer;
+	
+	}
+	
+	private ArrayList<ArrayList<String>> getAnswersForSubtree(RuleGoalTree tree) throws NumberFormatException, EntityNotFoundException {
+	ArrayList<ArrayList<String>> result = new ArrayList<ArrayList<String>>();
+	
+	for (Rule childRule : tree.getChildren()) {
+		Predicate resultPredicate = null;
+		RuleBody body = childRule.getRuleBody();
+	
+		for (Predicate subgoal : body.getPredicates()) {
+			// subgoal already exists in fact list?
+			if (!getFacts(subgoal)) {
+				ArrayList<Rule> unifiedChildrenRules = new ArrayList<Rule>();
+				for (Rule r : rules) {
+					// look for needed goal predicate in rule heads
+					// + unify found rules
+					Predicate ruleHead = r.getHead();
+					if (ruleHead.getKind().equals(subgoal.getKind())
+							&& ruleHead.getNumberSchemeEntries() == subgoal
+									.getNumberSchemeEntries()) {
+						Rule unifiedRule = unifyRule(subgoal, r);
+						unifiedChildrenRules.add(unifiedRule);
+					}
 				}
-			}
-
-			if (unifiedChildrenRules.size() != 0) {
-				// initialize next level of ruleGoalTree with unified
-				// children rules and save the results in Predicate
-				// subgoal
-				RuleGoalTree subTree = new RuleGoalTree(
-						unifiedChildrenRules);
-				subgoal.setRelation(getAnswersForSubtree(subTree));
-				generateMagicSet(subgoal.getRelation(),
-						subgoal.getKind());
-				// add new facts to temp fact list
-				for (ArrayList<String> str : subgoal.getRelation()) {
-					facts.add(new Fact(subgoal.getKind(), str));
+	
+				if (unifiedChildrenRules.size() != 0) {
+					// initialize next level of ruleGoalTree with unified
+					// children rules and save the results in Predicate
+					// subgoal
+					RuleGoalTree subTree = new RuleGoalTree(
+							unifiedChildrenRules);
+					subgoal.setRelation(getAnswersForSubtree(subTree));
+					generateMagicSet(subgoal.getRelation(),
+							subgoal.getKind());
+					// add new facts to temp fact list
+					for (ArrayList<String> str : subgoal.getRelation()) {
+						facts.add(new Fact(subgoal.getKind(), str));
+					}
 				}
 			}
 		}
+	
+		// get results of rule body (join and conditions)
+		if (body.getPredicates().size() > 1)
+			resultPredicate = join(body.getPredicates());
+		else if (!body.getPredicates().isEmpty())
+			resultPredicate = body.getPredicates().get(0);
+		if (body.getConditions() != null && !body.getConditions().isEmpty())
+			resultPredicate = selection(resultPredicate,
+					body.getConditions());
+	
+		// save results in head predicate
+		childRule.getHead()
+				.setRelation(
+						getResults(resultPredicate, childRule.getHead()
+								.getScheme()));
+	
+		result.addAll(childRule.getHead().getRelation());
+	
 	}
-
-	// get results of rule body (join and conditions)
-	if (body.getPredicates().size() > 1)
-		resultPredicate = join(body.getPredicates());
-	else if (!body.getPredicates().isEmpty())
-		resultPredicate = body.getPredicates().get(0);
-	if (body.getConditions() != null && !body.getConditions().isEmpty())
-		resultPredicate = selection(resultPredicate,
-				body.getConditions());
-
-	// save results in head predicate
-	childRule.getHead()
-			.setRelation(
-					getResults(resultPredicate, childRule.getHead()
-							.getScheme()));
-
-	result.addAll(childRule.getHead().getRelation());
-
-}
-
-if (tree.getGoal().isHead()) {
-	// add put facts to put list
-	for (ArrayList<String> str : result) {
-		Fact newFact = new Fact(tree.getGoal().getKind(), str);
-		if (!factExists(facts, newFact)
-				&& !factExists(putFacts, newFact)
-				&& !newFact.getKind().startsWith("get"))
-			putFacts.add(newFact);
+	
+	if (tree.getGoal().isHead()) {
+		// add put facts to put list
+		for (ArrayList<String> str : result) {
+			Fact newFact = new Fact(tree.getGoal().getKind(), str);
+			if (!factExists(facts, newFact)
+					&& !factExists(putFacts, newFact)
+					&& !newFact.getKind().startsWith("get"))
+				putFacts.add(newFact);
+		}
 	}
-}
-return result;
-}
+	return result;
+	}
 
 
 	// checks whether a fact exists in an arrayList<Fact>
@@ -469,7 +469,7 @@ return result;
 	// edb-fact
 	// A(1,2)
 	// result is [1,2] and return is true if there are results
-	private boolean getFacts(Predicate predicate) {
+	private boolean getFacts(Predicate predicate) throws NumberFormatException, EntityNotFoundException {
 		ArrayList<ArrayList<String>> values = new ArrayList<ArrayList<String>>();
 		String kind = predicate.getKind();
 		int number = predicate.getNumberSchemeEntries();
