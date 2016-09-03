@@ -437,7 +437,9 @@ public class DatalutionDatastoreService {
 	 * @throws InputMismatchException 
 	 * @throws EntityNotFoundException 
 	 */	
-	public void putToDatabase(String datalogFact) throws InputMismatchException, ParseException, EntityNotFoundException {
+	public void putToDatabase(String datalogFact) throws InputMismatchException, 
+		ParseException, EntityNotFoundException {
+		
 		Entity entity = null;
 		
 		entity = new ParserForPut(new StringReader(datalogFact)).getEntity();
@@ -504,7 +506,7 @@ public class DatalutionDatastoreService {
 		ArrayList<String> attributes = new ArrayList<String>();
 		attributes.add("?id");
 		if (!kind.replaceAll("\\d", "").equals(kind)) {
-			throw new InputMismatchException("Numbers are not allowed in kind");
+			throw new InputMismatchException("Invalid kind name! (numbers are not allowed)");
 		}
 		else 				
 			saveCurrentSchema(kind, attributes);

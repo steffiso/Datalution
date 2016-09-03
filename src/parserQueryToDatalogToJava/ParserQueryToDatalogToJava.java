@@ -229,7 +229,7 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
       jj_consume_token(-1);
       throw new ParseException();
     }
-    if (!propertyToken.toString().equals("id")) {if (true) throw new IOException("only id for get");}
+    if (!propertyToken.toString().equals("id")) {if (true) throw new IOException("Only id is supported for get command!");}
     String kind = kindToken.toString();
     String idTemp;
     if (idToken.kind == string)
@@ -248,7 +248,7 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
     getSchemaFromDB(kind, "");
     if (currentSchemaFrom == null)
     {
-      {if (true) throw new InputMismatchException("no info for schema of " + kind + " found");}
+      {if (true) throw new InputMismatchException("No info for schema of " + kind + " found!");}
     }
     ArrayList < String > schema = currentSchemaFrom.getAttributesAsList();
     int currentVersion = currentSchemaFrom.getVersion();
@@ -296,11 +296,11 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
     getSchemaFromDB(kind, "");
     if (currentSchemaFrom == null)
     {
-      {if (true) throw new InputMismatchException("no info for schema of " + kind + " found");}
+      {if (true) throw new InputMismatchException("No info for schema of " + kind + " found!");}
     }
     if (propertyExists(currentSchemaFrom, propertyName))
     {
-      {if (true) throw new InputMismatchException("attribute for " + kind + " already exists");}
+      {if (true) throw new InputMismatchException("Attribute for " + kind + " already exists!");}
     }
     ArrayList < String > currentSchema = currentSchemaFrom.getAttributesAsList();
     ArrayList < String > newSchema = getNewSchemaAdd(kind, "?" + propertyName);
@@ -326,11 +326,11 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
     getSchemaFromDB(kind, "");
     if (currentSchemaFrom == null)
     {
-      {if (true) throw new InputMismatchException("no info for schema of " + kind + " found");}
+      {if (true) throw new InputMismatchException("No info for schema of " + kind + " found!");}
     }
     if (!propertyExists(currentSchemaFrom, propertyName))
     {
-      {if (true) throw new InputMismatchException("attribute for " + kind + " does not exist");}
+      {if (true) throw new InputMismatchException("Attribute for " + kind + " does not exist!");}
     }
     ArrayList < String > newSchema = getNewSchemaDelete(kind, propertyName);
     int currentVersion = currentSchemaFrom.getVersion();
@@ -371,15 +371,15 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
     getSchemaFromDB(kindFrom, kindTo);
     if (currentSchemaFrom == null)
     {
-      {if (true) throw new InputMismatchException("no info for schema of " + kindFrom + " found");}
+      {if (true) throw new InputMismatchException("No info for schema of " + kindFrom + " found!");}
     }
     if (currentSchemaTo == null)
     {
-      {if (true) throw new InputMismatchException("no info for schema of " + kindTo + " found");}
+      {if (true) throw new InputMismatchException("No info for schema of " + kindTo + " found!");}
     }
     if (!propertyExists(currentSchemaFrom, attribute))
     {
-      {if (true) throw new InputMismatchException("attribute: " + attribute + " for " + kindFrom + " does not exist");}
+      {if (true) throw new InputMismatchException("Attribute '" + attribute + "' for " + kindFrom + " does not exist!");}
     }
     String condKind1 = condKind1Token.toString();
     String condKind2 = condKind2Token.toString();
@@ -401,15 +401,15 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
     }
     if (!propertyExists(currentSchemaFrom, conditionFrom))
     {
-      {if (true) throw new InputMismatchException("attribute: " + conditionFrom + " for " + kindFrom + " does not exist");}
+      {if (true) throw new InputMismatchException("Attribute '" + conditionFrom + "' for " + kindFrom + " does not exist!");}
     }
     if (!propertyExists(currentSchemaTo, conditionTo))
     {
-      {if (true) throw new InputMismatchException("attribute: " + conditionTo + " for " + kindTo + " does not exist");}
+      {if (true) throw new InputMismatchException("Attribute '" + conditionTo + "' for " + kindTo + " does not exist!");}
     }
     if (propertyExists(currentSchemaTo, attribute))
     {
-      {if (true) throw new InputMismatchException("attribute: " + attribute + " for " + kindTo + " already exists");}
+      {if (true) throw new InputMismatchException("Attribute '" + attribute + "' for " + kindTo + " already exists!");}
     }
     ArrayList < String > schemaToNew = getNewSchemaAdd(kindTo, "?" + attribute);
     ArrayList < String > schemaToNew2 = getNewSchemaAdd(kindTo, "null");
@@ -465,15 +465,15 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
     getSchemaFromDB(kindFrom, kindTo);
     if (currentSchemaFrom == null)
     {
-      {if (true) throw new InputMismatchException("no info for schema of " + kindFrom + " found");}
+      {if (true) throw new InputMismatchException("No info for schema of " + kindFrom + " found!");}
     }
     if (currentSchemaTo == null)
     {
-      {if (true) throw new InputMismatchException("no info for schema of " + kindTo + " found");}
+      {if (true) throw new InputMismatchException("No info for schema of " + kindTo + " found!");}
     }
     if (!propertyExists(currentSchemaFrom, attribute))
     {
-      {if (true) throw new InputMismatchException("attribute: " + attribute + " for " + kindFrom + " does not exist");}
+      {if (true) throw new InputMismatchException("Attribute '" + attribute + "' for " + kindFrom + " does not exist!");}
     }
     String condKind1 = condKind1Token.toString();
     String condKind2 = condKind2Token.toString();
@@ -497,15 +497,15 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
     }
     if (!propertyExists(currentSchemaFrom, conditionFrom))
     {
-      {if (true) throw new InputMismatchException("attribute: " + conditionFrom + " for " + kindFrom + " does not exist");}
+      {if (true) throw new InputMismatchException("Attribute '" + conditionFrom + "' for " + kindFrom + " does not exist!");}
     }
     if (!propertyExists(currentSchemaTo, conditionTo))
     {
-      {if (true) throw new InputMismatchException("attribute: " + conditionTo + " for " + kindTo + " does not exist");}
+      {if (true) throw new InputMismatchException("Attribute '" + conditionTo + "' for " + kindTo + " does not exist!");}
     }
     if (propertyExists(currentSchemaTo, attribute))
     {
-      {if (true) throw new InputMismatchException("attribute: " + attribute + " for " + kindTo + " already exists");}
+      {if (true) throw new InputMismatchException("Attribute '" + attribute + "' for " + kindTo + " already exists!");}
     }
     ArrayList < String > schemaFromNew = getNewSchemaDelete(kindFrom, attribute);
     ArrayList < String > schemaToNew = getNewSchemaAdd(kindTo, "?" + attribute);

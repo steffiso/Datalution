@@ -1,9 +1,24 @@
-<!-- Indices written at Fri, 2 Sep 2016 20:37:00 CEST -->
+<!-- Indices written at Sat, 3 Sep 2016 17:21:53 CEST -->
 
 <datastore-indexes>
 
-    <!-- Used 3 times in query history -->
+    <!-- Used 7 times in query history -->
+    <datastore-index kind="SchemaPlayer" ancestor="true" source="auto">
+        <property name="ts" direction="desc"/>
+    </datastore-index>
+
+    <!-- Used 10 times in query history -->
     <datastore-index kind="SchemaMission" ancestor="true" source="auto">
+        <property name="ts" direction="desc"/>
+    </datastore-index>
+
+    <!-- Used 1 time in query history -->
+    <datastore-index kind="Player3" ancestor="true" source="auto">
+        <property name="ts" direction="desc"/>
+    </datastore-index>
+
+    <!-- Used 3 times in query history -->
+    <datastore-index kind="Mission2" ancestor="true" source="auto">
         <property name="ts" direction="desc"/>
     </datastore-index>
 
@@ -13,17 +28,27 @@
     </datastore-index>
 
     <!-- Used 1 time in query history -->
+    <datastore-index kind="Player2" ancestor="true" source="auto">
+        <property name="ts" direction="desc"/>
+    </datastore-index>
+
+    <!-- Used 1 time in query history -->
+    <datastore-index kind="Player1" ancestor="true" source="auto">
+        <property name="ts" direction="desc"/>
+    </datastore-index>
+
+    <!-- Used 17 times in query history -->
+    <datastore-index kind="SchemaJob" ancestor="true" source="auto">
+        <property name="ts" direction="desc"/>
+    </datastore-index>
+
+    <!-- Used 8 times in query history -->
+    <datastore-index kind="Job1" ancestor="true" source="auto">
+        <property name="ts" direction="desc"/>
+    </datastore-index>
+
+    <!-- Used 1 time in query history -->
     <datastore-index kind="SchemaJ" ancestor="true" source="auto">
-        <property name="ts" direction="desc"/>
-    </datastore-index>
-
-    <!-- Used 1 time in query history -->
-    <datastore-index kind="SchemaK" ancestor="true" source="auto">
-        <property name="ts" direction="desc"/>
-    </datastore-index>
-
-    <!-- Used 1 time in query history -->
-    <datastore-index kind="SchemaJob3" ancestor="true" source="auto">
         <property name="ts" direction="desc"/>
     </datastore-index>
 

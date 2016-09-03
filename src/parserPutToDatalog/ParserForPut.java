@@ -33,8 +33,6 @@ public class ParserForPut implements ParserForPutConstants {
       length = attributes.size();
       schemaVersion = schema.getVersion();
     }
-    else
-        throw new EntityNotFoundException(KeyFactory.createKey("Schema",kind));
   }
 
   final public Entity start() throws ParseException, InputMismatchException, EntityNotFoundException {
@@ -90,7 +88,7 @@ public class ParserForPut implements ParserForPutConstants {
     }
     else if (idToken == null)
     {
-      {if (true) throw new InputMismatchException("no id found");}
+      {if (true) throw new InputMismatchException("No id found!");}
     }
     if (schemaToken != null && isManualPut == false)
     {
@@ -100,7 +98,7 @@ public class ParserForPut implements ParserForPutConstants {
     }
     else if (schemaToken != null && isManualPut == true)
     {
-      {if (true) throw new InputMismatchException("no numbers for value of kind allowed");}
+      {if (true) throw new InputMismatchException("Invalid kind name! (numbers are not allowed)");}
     }
     else
     {
@@ -109,7 +107,7 @@ public class ParserForPut implements ParserForPutConstants {
     }
     if (attributes == null)
     {
-      {if (true) throw new InputMismatchException("no info for schema of " + kindToken.toString() + " found");}
+      {if (true) throw new InputMismatchException("No info for schema of " + kindToken.toString() + " found!");}
     }
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case nullValue:
@@ -134,7 +132,6 @@ public class ParserForPut implements ParserForPutConstants {
       ;
     }
     if (putEntity == null) putEntity = new Entity(kindToken.toString() + schemaVersion);
-    //throw new InputMismatchException("no attributes for " + kindToken.toString());
     putEntity.setProperty("id", id);
     {if (true) return putEntity;}
     throw new Error("Missing return statement in function");

@@ -47,7 +47,7 @@ public class DatalutionServlet extends HttpServlet {
 				childPlayer = new ParserForPut(new StringReader(putCommand))
 						.start();
 				dds.put(childPlayer);
-				req.setAttribute("result", putCommand + " was successful!");
+				req.setAttribute("result", putCommand + " was successful! Added entity to Datastore!");
 			} catch (InputMismatchException | ParseException | EntityNotFoundException e) {
 				req.setAttribute("result", e.getMessage());
 			}
@@ -65,7 +65,6 @@ public class DatalutionServlet extends HttpServlet {
 		RequestDispatcher jsp = null;
 		kind = null;
 		userId = 0;
-		resp.setContentType("text/html");
 		getCommand = req.getParameter("getCommand");
 		
 		if (getCommand != null && !getCommand.isEmpty()) {
@@ -85,6 +84,7 @@ public class DatalutionServlet extends HttpServlet {
 		}
 
 		if (getCommand != null && kind != null) {
+			// parsing of get command was successful => try to find an entity in Datastore
 			try {
 				userPlayer = dds.get(kind, Integer.toString(userId));
 			} catch (InputMismatchException | parserQueryToDatalogToJava.ParseException
@@ -94,6 +94,7 @@ public class DatalutionServlet extends HttpServlet {
 			}
 
 			if (userPlayer != null) {
+				// entity with current schema was found
 				String resultEntityStr = "";
 				try {
 					resultEntityStr = formatEntityToOutputString(userPlayer);
@@ -116,7 +117,7 @@ public class DatalutionServlet extends HttpServlet {
    	*/
 	public String formatEntityToOutputString(Entity entity) throws EntityNotFoundException {
 		Schema latestSchema = dds.getLatestSchema(kind);		
-		String outputString = "[";
+		String outputString = kind + ": [";
 		for (String attribute : latestSchema.getAttributesAsList())
 			outputString = outputString + attribute + "="
 					+ entity.getProperty(attribute.substring(1)) + ", ";

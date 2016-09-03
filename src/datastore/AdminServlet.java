@@ -24,26 +24,28 @@ import parserQueryToDatalogToJava.ParseException;
 @SuppressWarnings("serial")
 public class AdminServlet extends HttpServlet {
 
-	private String rulesStr = "";
+	private String datalogRules = "";
 			
 	public void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException, ServletException{	
 		
 		RequestDispatcher jsp = null;
 		String command = req.getParameter("command");
 		DatalutionDatastoreService dds = new DatalutionDatastoreService();
-		rulesStr = "";		
+		datalogRules = "";		
 		
 		if (command != null){
 			if (command.equals("start")) {
+				// command for adding start/test entities to Datastore
 				dds.addStartEntities();	
-				req.setAttribute("result", "Start entities added to Datastore!");
+				req.setAttribute("result", "Start entities successful added to Datastore!");
 			}
 			else if (command.startsWith("new")) {
+				// command for adding new entitiy type
 				String [] newEntity = command.split(" ");
 				if (newEntity.length == 2)
 					try {
 						dds.addNewEntity(newEntity[1]);
-						req.setAttribute("result", "Adding new entity type " + newEntity[1] + " was successful! "
+						req.setAttribute("result", "Adding new entity type " + newEntity[1] + " was successful!\n"
 								+ "Now you can put entities within the user console!");
 					} catch (EntityNotFoundException | InputMismatchException e) {
 						req.setAttribute("result", e.getMessage());
@@ -51,10 +53,14 @@ public class AdminServlet extends HttpServlet {
 			}
 			else {
 				try {
-					rulesStr = dds.saveSchemaChange(command);
-					req.setAttribute("result", "Schema change was successful! \nGenerated Datalog rules:\n" + rulesStr);
+					// if command is valid, new schema and generated datalog rules will be saved in datastore
+					datalogRules = dds.saveSchemaChange(command);
+					req.setAttribute("result", "Schema change was successful! " +
+							"\n\nGenerated Datalog rules:\n" + datalogRules);
 				} catch (InputMismatchException | ParseException | 
-						parserRuletoJava.ParseException | EntityNotFoundException e) {
+						parserRuletoJava.ParseException | parserQueryToDatalogToJava.TokenMgrError 
+						| EntityNotFoundException e) {
+					// if an error occurs, show error message in result text box
 					req.setAttribute("result", e.getMessage());
 				}
 			}
