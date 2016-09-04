@@ -1,4 +1,4 @@
-"Datalution - A Datalog-based Tool for Schema Evolution in NoSQL Databases", Version 2.0, 08/05/2016
+"Datalution - A Datalog-based Tool for Schema Evolution in NoSQL Databases", Version 2.0, 09/05/2016
 ====================================================================================================
 
 GENERAL USAGE NOTES
@@ -15,8 +15,8 @@ GENERAL USAGE NOTES
 GETTING STARTED
 ----------------------------------------------------------------------------------------------------
 - To use this tool, two different sights are provided:
-	- User- Console: to get and put entities
-	- Admin- Console: to make schema changes or add new entitiy types
+	- User- Console (/user): to get and put entities
+	- Admin- Console (/admin): to make schema changes or add new entitiy types
 - Supported commands have the following syntax: e.g.
 	1. In the user console:
 	- get Player.id=1
@@ -34,24 +34,22 @@ GETTING STARTED
 
 BACKGROUND INFORMATION
 ---------------------------------------------------------------------------------------------------
- - The data of our tool is based on Google Datastore. 
  - If you want to add a new entity with a new kind, these are the working steps:
-   to add e.g. a new entity type "Job":
+   (e.g. to add a new entity type "Job")
 	1. Add a new schema with the following command in the admin console: "new Job"
-	2. Now you can put entities in the user console: e.g. "put Job(1)
+	2. Now you can put entities in the user console: e.g. "put Job(1)"
 	   Or add attributes to your new entity in the admin console: 
 		e.g. "add Job.name="defaultName""
  
  - For Datalution the strong consistency properties of Entity groups is used 
    (more information about strong consistency in Datastore is provided in the docu:
-   https://cloud.google.com/appengine/docs/java/datastore/structuring_for_strong_consistency
+   https://cloud.google.com/appengine/docs/java/datastore/structuring_for_strong_consistency)
  - To guarantee that the schema evolution steps provide strong consistency, each entity
    and its several schema versions are connected in one entity group (e.g. Player1(id=1),
    Player2(id=1) and Player3(id=1) are within the same entity group)
- - 
 
 CONTACT
 -------------------------------------------------------------------------------------
-Katharina Wiech, katharina.wiech@st.oth-regensburg.de
+Katharina Wiech, katharina1.wiech@st.oth-regensburg.de
 
 Stephanie Sombach, stephanie.sombach@st.oth-regensburg.de
