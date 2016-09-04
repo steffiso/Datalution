@@ -151,7 +151,7 @@ public class DatalutionDatastoreService {
 
 			@SuppressWarnings("unused")
 			ArrayList<String> answerString = null;
-			answerString = migrate.writeAnswersInDatabase();
+			answerString = migrate.executeLazyMigration();
 			
 			// besser : nicht nochmal aus datastore abfragen,
 			// sondern direkt aus answerString?

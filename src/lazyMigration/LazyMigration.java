@@ -19,8 +19,6 @@ public class LazyMigration {
 	private ArrayList<Rule> rules;
 	private Predicate goal;
 	private List<Map<String, String>> unificationMap;
-	private int numberOfPuts;
-
 	public LazyMigration(ArrayList<Fact> facts, ArrayList<Rule> rules,
 			Predicate goal, List<Map<String, String>> unificationMap) {
 		this.facts = facts;
@@ -29,28 +27,15 @@ public class LazyMigration {
 		this.unificationMap = unificationMap;
 	}
 
-	public ArrayList<String> writeAnswersInDatabase() throws ParseException, IOException, URISyntaxException, InputMismatchException, EntityNotFoundException {
+	public ArrayList<String> executeLazyMigration() throws ParseException, IOException, URISyntaxException, InputMismatchException, EntityNotFoundException {
 
 		TopDownExecution lazy = new TopDownExecution(facts, rules, goal,
 				unificationMap);
 		ArrayList<Fact> getAnswers = lazy.getAnswers();
 
-		ArrayList<String> list = null;
-		for (Fact f : getAnswers) {
-			if (list == null)
-				list = new ArrayList<String>();
-			list.add(f.toString());
-		}
-		setNumberOfPuts(lazy.getNumberOfPuts());
-		return list;
-	}
-	public int getNumberOfPuts() {
-		return numberOfPuts;
+		return getAnswers.get(0).getListOfValues();
 	}
 
-	public void setNumberOfPuts(int numberOfPuts) {
-		this.numberOfPuts = numberOfPuts;
-	}
 
 	
 }

@@ -1,34 +1,61 @@
 package datalog;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-//superclass for migration classes: BottomUpExecution and TopDownExecution
+/**
+ * superclass with similar methods for both migration approaches: bottom up or
+ * top down
+ * 
+ * @author Stephanie Sombach and Katharina Wiech
+ * @version 1.0
+ */
+
 public class MigrationExecution {
 
-	// all edb facts and generated idb
+	/** all edb facts and generated idb facts */
 	protected ArrayList<Fact> facts;
-	// all generated datalog rules
+	/** all generated datalog rules */
 	protected ArrayList<Rule> rules;
+	/** map which holds information renamed variables based on magic conditions @see MagicCondition*/
+	protected Map<String, String[]> mapForRenamedVariables;
 
-	// set edb facts and rules
+	/**
+	 * constuctor: set edb facts, rules
+	 * 
+	 * @param facts
+	 *            edb facts
+	 * @param rules
+	 *            datalog rules
+	 */
 	public MigrationExecution(ArrayList<Fact> facts, ArrayList<Rule> rules) {
 		super();
 		this.facts = facts;
 		this.rules = rules;
+		this.mapForRenamedVariables = new HashMap<String, String[]>();
 	}
-	
-	// get all facts
+
+	/** getter method for facts */
 	public ArrayList<Fact> getFacts() {
 		return facts;
 	}
 
-	// set all facts
+	/** setter method for facts */
 	public void setFacts(ArrayList<Fact> values) {
 		this.facts = values;
 	}
-	
-	//get all facts of a Kind
+
+	/**
+	 * get all facts of a Kind
+	 * 
+	 * @param kind
+	 *            kind of predicate
+	 * @param number
+	 *            number of attributes of predicate scheme
+	 * @return results of all facts for a given kind and scheme
+	 */
 	public ArrayList<ArrayList<String>> getResultsOfKind(String kind, int number) {
 		ArrayList<ArrayList<String>> answer = new ArrayList<ArrayList<String>>();
 
@@ -41,7 +68,16 @@ public class MigrationExecution {
 		return answer;
 	}
 
-	// rename redicates step by step
+	/**
+	 * rename predicates of a rule step by step
+	 * 
+	 * @param rule
+	 *            rule to be renamed
+	 * @param left
+	 *            new value
+	 * @param right
+	 *            old value
+	 */
 	protected void renameVariablesOfAllPredicates(Rule rule, String left,
 			String right) {
 		renameVariablesOfPredicate(rule.getHead(), left, right);
@@ -49,16 +85,36 @@ public class MigrationExecution {
 			renameVariablesOfPredicate(pred, left, right);
 	}
 
-	// rename variables of predicate step by step
+	/**
+	 * rename variables of predicate step by step
+	 * 
+	 * @param predicate
+	 *            predicate to be renamed
+	 * @param left
+	 *            new value
+	 * @param right
+	 *            old value
+	 */
 	protected void renameVariablesOfPredicate(Predicate predicate, String left,
 			String right) {
 		if (predicate.getScheme().contains(right)) {
 			predicate.getScheme().set(predicate.getScheme().indexOf(right),
 					left);
+			mapForRenamedVariables.put(predicate.getKind()/* +prediacte.getNumber? */,
+					new String[] { left, right }); // ändern für override und
+													// testen ob bereits
+													// existiert
 		}
 	}
 
-	// generate temporary results of all conditions of a rule step by step
+	/**
+	 * generate temporary results of all conditions of a rule step by step
+	 * 
+	 * @param predResult
+	 *            predicate to execute all selections on
+	 * @param conditions
+	 *            all conditions for selection
+	 */
 	protected Predicate selection(Predicate predResult,
 			ArrayList<Condition> conditions) {
 		for (Condition cond : conditions) {
@@ -67,9 +123,16 @@ public class MigrationExecution {
 		return predResult;
 	}
 
-	// generate temporary results of condition, e.g.: C(?y,?z) :-
-	// A(?x,?y),B(?x,?z),?y=?z.
-	// Only put values of A and B to end result which satisfies condition ?y=?z.
+	/**
+	 * generate temporary results of one condition, e.g.: C(?y,?z) :-
+	 * A(?x,?y),B(?x,?z),?y=?z. Only put values of A and B to end result which
+	 * satisfies condition ?y=?z.
+	 * 
+	 * @param p
+	 *            predicate to execute one selection on
+	 * @param cond
+	 *            one condition for selection
+	 */
 	protected Predicate getTempCondResult(Predicate p, Condition cond) {
 		ArrayList<ArrayList<String>> facts = new ArrayList<ArrayList<String>>();
 		String rightOperand = cond.getRightOperand();
@@ -94,7 +157,6 @@ public class MigrationExecution {
 					right = factOfFactList.get(p.getScheme().indexOf(
 							rightOperand));
 				else {
-					System.out.println(leftOperand + " existiert nicht");
 					facts.add(factOfFactList);
 					continue;
 				}
@@ -143,18 +205,23 @@ public class MigrationExecution {
 
 	}
 
-	// find all equal attributes of two predicates for a join, e.g.: C(?y,?z) :-
-	// A(?x,?y),B(?x,?z). -->
-	// ?x
-	// is a join attribute
+	/**
+	 * find all equal attributes of two predicates for a join, e.g.: C(?y,?z) :-
+	 * A(?x,?y),B(?x,?z). --> ?x is a join attribute
+	 * 
+	 * @param leftList
+	 *            attributes of left Predicate
+	 * @param rightList
+	 *            attributes of right Predicate
+	 */
 	protected ArrayList<PairofInteger> getEqualList(ArrayList<String> leftList,
 			ArrayList<String> rightList) {
 		ArrayList<PairofInteger> list = new ArrayList<PairofInteger>();
 		for (int i = 0; i < leftList.size(); i++)
 			for (int j = 0; j < rightList.size(); j++)
-				if (leftList.get(i).startsWith("?"))
-					if (leftList.get(i).equals(rightList.get(j)))
-						list.add(new PairofInteger(i, j));
+				if (leftList.get(i).startsWith("?")
+						&& leftList.get(i).equals(rightList.get(j)))
+					list.add(new PairofInteger(i, j));
 		return list;
 	}
 

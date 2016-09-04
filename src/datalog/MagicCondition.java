@@ -2,11 +2,23 @@ package datalog;
 
 import java.util.ArrayList;
 
+/**
+ * class for generating MagicConditions MagicConditon: condition with two
+ * variables, e.g. ?x=?y ->it's a magic condition for a magic set in top down
+ * execution
+ * 
+ * (Note: conditions with constants , e.g. ?x=1, aren't considered in this
+ * implemantation -> because they don't occur in our generated datalog rules
+ * (except for get commands). But it could be implemented for future use!)
+ * 
+ * @author Stephanie Sombach and Katharina Wiech
+ * @version 1.0
+ */
+
 public class MagicCondition {
 	private PairForMagicCondition left;
 	private ArrayList<PairForMagicCondition> right;
 	private boolean alreadyFoundResults;
-	private String nameOfMagicView;
 
 	public MagicCondition(PairForMagicCondition kindLeft,
 			PairForMagicCondition kindRight) {
@@ -44,14 +56,6 @@ public class MagicCondition {
 	@Override
 	public String toString() {
 		return "MagicCondition:" + left.toString() + ":- " + right.toString();
-	}
-
-	public String getNameOfMagicView() {
-		return nameOfMagicView;
-	}
-
-	public void setNameOfMagicView(String nameOfMagicView) {
-		this.nameOfMagicView = nameOfMagicView;
 	}
 
 	public boolean contains(PairForMagicCondition newRight) {
