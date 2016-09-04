@@ -1,54 +1,24 @@
-<!-- Indices written at Sat, 3 Sep 2016 17:21:53 CEST -->
+<!-- Indices written at Sun, 4 Sep 2016 21:43:07 CEST -->
 
 <datastore-indexes>
 
-    <!-- Used 7 times in query history -->
+    <!-- Used 1 time in query history -->
     <datastore-index kind="SchemaPlayer" ancestor="true" source="auto">
         <property name="ts" direction="desc"/>
     </datastore-index>
 
-    <!-- Used 10 times in query history -->
+    <!-- Used 17 times in query history -->
     <datastore-index kind="SchemaMission" ancestor="true" source="auto">
         <property name="ts" direction="desc"/>
     </datastore-index>
 
-    <!-- Used 1 time in query history -->
-    <datastore-index kind="Player3" ancestor="true" source="auto">
-        <property name="ts" direction="desc"/>
-    </datastore-index>
-
-    <!-- Used 3 times in query history -->
+    <!-- Used 7 times in query history -->
     <datastore-index kind="Mission2" ancestor="true" source="auto">
         <property name="ts" direction="desc"/>
     </datastore-index>
 
-    <!-- Used 1 time in query history -->
+    <!-- Used 2 times in query history -->
     <datastore-index kind="Mission1" ancestor="true" source="auto">
-        <property name="ts" direction="desc"/>
-    </datastore-index>
-
-    <!-- Used 1 time in query history -->
-    <datastore-index kind="Player2" ancestor="true" source="auto">
-        <property name="ts" direction="desc"/>
-    </datastore-index>
-
-    <!-- Used 1 time in query history -->
-    <datastore-index kind="Player1" ancestor="true" source="auto">
-        <property name="ts" direction="desc"/>
-    </datastore-index>
-
-    <!-- Used 17 times in query history -->
-    <datastore-index kind="SchemaJob" ancestor="true" source="auto">
-        <property name="ts" direction="desc"/>
-    </datastore-index>
-
-    <!-- Used 8 times in query history -->
-    <datastore-index kind="Job1" ancestor="true" source="auto">
-        <property name="ts" direction="desc"/>
-    </datastore-index>
-
-    <!-- Used 1 time in query history -->
-    <datastore-index kind="SchemaJ" ancestor="true" source="auto">
         <property name="ts" direction="desc"/>
     </datastore-index>
 

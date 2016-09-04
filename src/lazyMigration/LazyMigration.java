@@ -32,8 +32,11 @@ public class LazyMigration {
 		TopDownExecution lazy = new TopDownExecution(facts, rules, goal,
 				unificationMap);
 		ArrayList<Fact> getAnswers = lazy.getAnswers();
-
-		return getAnswers.get(0).getListOfValues();
+		if (getAnswers.size() == 1) {
+			return getAnswers.get(0).getListOfValues();
+		}
+		else 
+			return null;
 	}
 
 

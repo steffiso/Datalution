@@ -18,12 +18,12 @@ import javax.servlet.http.HttpServletResponse;
 
 import parserPutToDatalog.ParseException;
 import parserPutToDatalog.ParserForPut;
-import parserQueryToDatalogToJava.ParserQueryToDatalogToJava;
 
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
 
 import datalog.Rule;
+import parserGetToDatalog.ParserForGet;
 
 @SuppressWarnings("serial")
 public class DatalutionServlet extends HttpServlet {
@@ -68,7 +68,7 @@ public class DatalutionServlet extends HttpServlet {
 		getCommand = req.getParameter("getCommand");
 		
 		if (getCommand != null && !getCommand.isEmpty()) {
-			ParserQueryToDatalogToJava parserget = new ParserQueryToDatalogToJava(
+			ParserForGet parserget = new ParserForGet(
 					new StringReader(getCommand));
 			
 			try {
@@ -77,8 +77,8 @@ public class DatalutionServlet extends HttpServlet {
 				userId = parserget.getId();
 				kind = parserget.getKind();
 				req.setAttribute("username", userId);
-			} catch (InputMismatchException | parserQueryToDatalogToJava.ParseException |
-					parserRuletoJava.ParseException | EntityNotFoundException e) {
+			} catch (InputMismatchException | parserGetToDatalog.ParseException |
+					parserRuletoJava.ParseException | EntityNotFoundException  e) {
 				req.setAttribute("result", e.getMessage());
 			} 			
 		}
@@ -89,7 +89,7 @@ public class DatalutionServlet extends HttpServlet {
 				userPlayer = dds.get(kind, Integer.toString(userId));
 			} catch (InputMismatchException | parserQueryToDatalogToJava.ParseException
 					| parserRuletoJava.ParseException | ParseException | 
-					URISyntaxException | EntityNotFoundException e) {
+					URISyntaxException | EntityNotFoundException | parserGetToDatalog.ParseException e) {
 				req.setAttribute("result", e.toString());
 			}
 

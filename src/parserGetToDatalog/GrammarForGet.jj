@@ -1,9 +1,7 @@
 /**
  * JavaCC template file created by SF JavaCC plugin 1.5.28+ wizard for JavaCC 1.5.0+
  *
- * This parser generates the entity which needs to be put to Datastore.
- * This put command can be triggered from Lazy Migration automatically,
- * as well as through a manual put within the user console.
+ * This parser generates the related Datalog rule for Lazy Migration for get commands.
  */options{  static = false;}PARSER_BEGIN(ParserForGet)package parserGetToDatalog;import java.util.ArrayList;
 import java.io.StringReader;
 import datastore.DatalutionDatastoreService;
@@ -42,11 +40,15 @@ import com.google.appengine.api.datastore.EntityNotFoundException;
     return id;
   }
 
-  public String getRules()
+  public String getRulesAsString()
   {
     return rulesStr;
   }
-
+  
+  public ArrayList<Rule > getRules()
+  {
+    return rules;
+  }
   private static void getSchemaFromDB(String kind) throws InputMismatchException, IOException, EntityNotFoundException
   {
     currentSchemaFrom = getCurrentSchema(kind);

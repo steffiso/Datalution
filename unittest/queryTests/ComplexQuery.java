@@ -67,7 +67,7 @@ public class ComplexQuery {
 			assertEquals("{score=100, ts=0, id=1, points=150}", userPlayer
 					.getProperties().toString());
 		} catch (InputMismatchException | ParseException | IOException | parserRuletoJava.ParseException
-				| parserPutToDatalog.ParseException | URISyntaxException | EntityNotFoundException e) {
+				| parserPutToDatalog.ParseException | URISyntaxException | EntityNotFoundException | parserGetToDatalog.ParseException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}  
@@ -77,10 +77,10 @@ public class ComplexQuery {
 		try {
 			 userMission = dds.get("Mission", "1");
 			assertEquals(
-					"{id=1, title=go to library, ts=0, priority=1, name=Lisa S., score=100, pid=1}",
+					"{id=1, title='go to library', ts=0, priority=1, name='Lisa S.', score=100, pid=1}",
 					userMission.getProperties().toString());
 		} catch (InputMismatchException | ParseException | IOException | parserRuletoJava.ParseException
-				| parserPutToDatalog.ParseException | URISyntaxException | EntityNotFoundException e) {
+				| parserPutToDatalog.ParseException | URISyntaxException | EntityNotFoundException | parserGetToDatalog.ParseException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}

@@ -95,7 +95,7 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
     currentSchemaAttributes = currentSchemaTo.getAttributesAsList();
     if (currentSchemaAttributes == null)
     {
-      throw new InputMismatchException("no info for schema of " + kind + " found");
+      throw new InputMismatchException("No info for schema of " + kind + " found!");
     }
     else
     {
@@ -115,7 +115,7 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
     else if (currentSchemaTo.getKind().equals(kind)) currentSchemaAttributes = currentSchemaTo.getAttributesAsList();
     if (currentSchemaAttributes == null)
     {
-      throw new InputMismatchException("no info for schema of " + kind + " found");
+      throw new InputMismatchException("No info for schema of " + kind + " found!");
     }
     else
     {
@@ -131,7 +131,7 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
     else if (currentSchemaTo.getKind().equals(kind)) currentSchemaAttributes = currentSchemaTo.getAttributesAsList();
     if (currentSchemaAttributes == null)
     {
-      throw new InputMismatchException("no info for schema of " + kind + " found");
+      throw new InputMismatchException("No info for schema of " + kind + " found!");
     }
     else
     {
@@ -150,7 +150,7 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
     }
     else
     {
-      throw new InputMismatchException("no info for schema of " + kind + " found");
+      throw new InputMismatchException("No info for schema of " + kind + " found!");
     }
   }
 
@@ -161,7 +161,7 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
 
   final public String getDatalogRules(DatalutionDatastoreService dds) throws ParseException, InputMismatchException, IOException, parserRuletoJava.ParseException, EntityNotFoundException {
   String value = null;
-  this.dds = dds;
+  ParserQueryToDatalogToJava.dds = dds;
     value = start();
     jj_consume_token(0);
     {if (true) return value;}
@@ -170,7 +170,7 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
 
   final public ArrayList < Rule > getJavaRules(DatalutionDatastoreService dds) throws ParseException, InputMismatchException, IOException, parserRuletoJava.ParseException, EntityNotFoundException {
   String value = null;
-  this.dds = dds;
+  ParserQueryToDatalogToJava.dds = dds;
     value = start();
     jj_consume_token(0);
     rulesStr = value;
@@ -184,9 +184,6 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
   currentSchemaFrom = null;
   currentSchemaTo = null;
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-    case get:
-      value = get();
-      break;
     case add:
       value = add();
       break;
@@ -208,66 +205,15 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
     throw new Error("Missing return statement in function");
   }
 
-  final public String get() throws ParseException, IOException, parserRuletoJava.ParseException, EntityNotFoundException {
-  Token kindToken = null;
-  Token idToken = null;
-  Token propertyToken = null;
-    jj_consume_token(get);
-    kindToken = jj_consume_token(name);
-    jj_consume_token(16);
-    propertyToken = jj_consume_token(name);
-    jj_consume_token(17);
-    switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-    case string:
-      idToken = jj_consume_token(string);
-      break;
-    case number:
-      idToken = jj_consume_token(number);
-      break;
-    default:
-      jj_la1[1] = jj_gen;
-      jj_consume_token(-1);
-      throw new ParseException();
-    }
-    if (!propertyToken.toString().equals("id")) {if (true) throw new IOException("Only id is supported for get command!");}
-    String kind = kindToken.toString();
-    String idTemp;
-    if (idToken.kind == string)
-    {
-      idTemp = idToken.toString();
-      idTemp = idTemp.substring(1, idTemp.length() - 1);
-      idTemp = "'" + idTemp + "'";
-    }
-    else
-    {
-      idTemp = idToken.toString();
-      id = Integer.parseInt(idToken.toString());
-    }
-    kindStr = kind;
-    idStr = idTemp;
-    getSchemaFromDB(kind, "");
-    if (currentSchemaFrom == null)
-    {
-      {if (true) throw new InputMismatchException("No info for schema of " + kind + " found!");}
-    }
-    ArrayList < String > schema = currentSchemaFrom.getAttributesAsList();
-    int currentVersion = currentSchemaFrom.getVersion();
-    String headRule = "get" + kind + currentVersion + "(" + schemaToString(schema) + ",?ts):-$"
-    + kind + currentVersion + "(" + schemaToString(schema) + ",?ts),?id=" + id + ".\u005cn";
-    rules.addAll((new ParserRuleToJava(new StringReader(headRule))).parseHeadRules());
-    {if (true) return headRule;}
-    throw new Error("Missing return statement in function");
-  }
-
   final public String add() throws ParseException, InputMismatchException, IOException, parserRuletoJava.ParseException, EntityNotFoundException {
   Token kindToken = null;
   Token propertyToken = null;
   Token valueToken = null;
     jj_consume_token(add);
     kindToken = jj_consume_token(name);
-    jj_consume_token(16);
+    jj_consume_token(15);
     propertyToken = jj_consume_token(name);
-    jj_consume_token(17);
+    jj_consume_token(16);
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case string:
       valueToken = jj_consume_token(string);
@@ -279,7 +225,7 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
       valueToken = jj_consume_token(nullValue);
       break;
     default:
-      jj_la1[2] = jj_gen;
+      jj_la1[1] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
@@ -300,7 +246,7 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
     }
     if (propertyExists(currentSchemaFrom, propertyName))
     {
-      {if (true) throw new InputMismatchException("Attribute for " + kind + " already exists!");}
+      {if (true) throw new InputMismatchException("Attribute '" + propertyName + "' for '" + kind + "' already exists!");}
     }
     ArrayList < String > currentSchema = currentSchemaFrom.getAttributesAsList();
     ArrayList < String > newSchema = getNewSchemaAdd(kind, "?" + propertyName);
@@ -309,7 +255,6 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
     String headRules = kind + newSchemaVersion + "(" + schemaToString(getNewSchemaAdd(kind, propertyValue)) + ",?ts):-$"
     + kind + currentSchemaVersion + "(" + schemaToString(currentSchema) + ",?ts).\u005cn";
     saveCurrentSchema(kind, newSchema);
-    rules.addAll((new ParserRuleToJava(new StringReader(headRules))).parseHeadRules());
     {if (true) return headRules;}
     throw new Error("Missing return statement in function");
   }
@@ -319,7 +264,7 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
   Token propertyToken = null;
     jj_consume_token(delete);
     kindToken = jj_consume_token(name);
-    jj_consume_token(16);
+    jj_consume_token(15);
     propertyToken = jj_consume_token(name);
     String propertyName = propertyToken.toString();
     String kind = kindToken.toString();
@@ -330,7 +275,7 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
     }
     if (!propertyExists(currentSchemaFrom, propertyName))
     {
-      {if (true) throw new InputMismatchException("Attribute for " + kind + " does not exist!");}
+      {if (true) throw new InputMismatchException("Attribute '" + propertyName + "' for '" + kind + "' does not exist!");}
     }
     ArrayList < String > newSchema = getNewSchemaDelete(kind, propertyName);
     int currentVersion = currentSchemaFrom.getVersion();
@@ -338,7 +283,6 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
     String headRules = kind + newVersion + "(" + schemaToString(newSchema) + ",?ts):-$"
     + kind + currentVersion + "(" + schemaToString(currentSchemaFrom.getAttributesAsList()) + ",?ts).\u005cn";
     saveCurrentSchema(kind, newSchema);
-    rules.addAll((new ParserRuleToJava(new StringReader(headRules))).parseHeadRules());
     {if (true) return headRules;}
     throw new Error("Missing return statement in function");
   }
@@ -353,17 +297,17 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
   Token condProp2Token = null;
     jj_consume_token(copy);
     kindFromToken = jj_consume_token(name);
-    jj_consume_token(16);
+    jj_consume_token(15);
     propertyToken = jj_consume_token(name);
-    jj_consume_token(18);
-    kindToToken = jj_consume_token(name);
-    jj_consume_token(19);
-    condKind1Token = jj_consume_token(name);
-    jj_consume_token(16);
-    condProp1Token = jj_consume_token(name);
     jj_consume_token(17);
-    condKind2Token = jj_consume_token(name);
+    kindToToken = jj_consume_token(name);
+    jj_consume_token(18);
+    condKind1Token = jj_consume_token(name);
+    jj_consume_token(15);
+    condProp1Token = jj_consume_token(name);
     jj_consume_token(16);
+    condKind2Token = jj_consume_token(name);
+    jj_consume_token(15);
     condProp2Token = jj_consume_token(name);
     String kindFrom = kindFromToken.toString();
     String kindTo = kindToToken.toString();
@@ -432,7 +376,6 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
     " not $" + kindFrom + currentSchemaVersionFrom + "(" + schemaToString(schemaFrom) + ",?ts2)," + condition + ".\u005cn";
     headRules = headRules + kindFrom + newSchemaVersionFrom + "(" + schemaToString(schemaFrom) + ",?ts2):-$"
     + kindFrom + currentSchemaVersionFrom + "(" + schemaToString(schemaFrom) + ",?ts2).\u005cn";
-    rules.addAll((new ParserRuleToJava(new StringReader(headRules))).parseHeadRules());
     {if (true) return headRules;}
     throw new Error("Missing return statement in function");
   }
@@ -447,17 +390,17 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
   Token condProp2Token = null;
     jj_consume_token(move);
     kindFromToken = jj_consume_token(name);
-    jj_consume_token(16);
+    jj_consume_token(15);
     propertyToken = jj_consume_token(name);
-    jj_consume_token(18);
-    kindToToken = jj_consume_token(name);
-    jj_consume_token(19);
-    condKind1Token = jj_consume_token(name);
-    jj_consume_token(16);
-    condProp1Token = jj_consume_token(name);
     jj_consume_token(17);
-    condKind2Token = jj_consume_token(name);
+    kindToToken = jj_consume_token(name);
+    jj_consume_token(18);
+    condKind1Token = jj_consume_token(name);
+    jj_consume_token(15);
+    condProp1Token = jj_consume_token(name);
     jj_consume_token(16);
+    condKind2Token = jj_consume_token(name);
+    jj_consume_token(15);
     condProp2Token = jj_consume_token(name);
     String kindFrom = kindFromToken.toString();
     String kindTo = kindToToken.toString();
@@ -530,7 +473,6 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
     " not $" + kindFrom + currentSchemaVersionFrom + "(" + schemaToString(schemaFrom) + ",?ts2)," + condition + ".\u005cn";
     headRules = headRules + kindFrom + newSchemaVersionFrom + "(" + schemaToString(schemaFromNew) + ",?ts2):-$"
     + kindFrom + currentSchemaVersionFrom + "(" + schemaToString(schemaFrom) + ",?ts2).\u005cn";
-    rules.addAll((new ParserRuleToJava(new StringReader(headRules))).parseHeadRules());
     {if (true) return headRules;}
     throw new Error("Missing return statement in function");
   }
@@ -544,13 +486,13 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
   public Token jj_nt;
   private int jj_ntk;
   private int jj_gen;
-  final private int[] jj_la1 = new int[3];
+  final private int[] jj_la1 = new int[2];
   static private int[] jj_la1_0;
   static {
       jj_la1_init_0();
    }
    private static void jj_la1_init_0() {
-      jj_la1_0 = new int[] {0x3e0,0x1400,0x1c00,};
+      jj_la1_0 = new int[] {0x1e0,0xe00,};
    }
 
   /** Constructor with InputStream. */
@@ -564,7 +506,7 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 3; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 2; i++) jj_la1[i] = -1;
   }
 
   /** Reinitialise. */
@@ -578,7 +520,7 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 3; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 2; i++) jj_la1[i] = -1;
   }
 
   /** Constructor. */
@@ -588,7 +530,7 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 3; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 2; i++) jj_la1[i] = -1;
   }
 
   /** Reinitialise. */
@@ -598,7 +540,7 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 3; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 2; i++) jj_la1[i] = -1;
   }
 
   /** Constructor with generated Token Manager. */
@@ -607,7 +549,7 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 3; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 2; i++) jj_la1[i] = -1;
   }
 
   /** Reinitialise. */
@@ -616,7 +558,7 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 3; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 2; i++) jj_la1[i] = -1;
   }
 
   private Token jj_consume_token(int kind) throws ParseException {
@@ -667,12 +609,12 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
   /** Generate ParseException. */
   public ParseException generateParseException() {
     jj_expentries.clear();
-    boolean[] la1tokens = new boolean[20];
+    boolean[] la1tokens = new boolean[19];
     if (jj_kind >= 0) {
       la1tokens[jj_kind] = true;
       jj_kind = -1;
     }
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < 2; i++) {
       if (jj_la1[i] == jj_gen) {
         for (int j = 0; j < 32; j++) {
           if ((jj_la1_0[i] & (1<<j)) != 0) {
@@ -681,7 +623,7 @@ public class ParserQueryToDatalogToJava implements ParserQueryToDatalogToJavaCon
         }
       }
     }
-    for (int i = 0; i < 20; i++) {
+    for (int i = 0; i < 19; i++) {
       if (la1tokens[i]) {
         jj_expentry = new int[1];
         jj_expentry[0] = i;

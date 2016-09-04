@@ -11,27 +11,25 @@ public interface ParserQueryToDatalogToJavaConstants {
   /** End of File. */
   int EOF = 0;
   /** RegularExpression Id. */
-  int get = 5;
+  int add = 5;
   /** RegularExpression Id. */
-  int add = 6;
+  int delete = 6;
   /** RegularExpression Id. */
-  int delete = 7;
+  int copy = 7;
   /** RegularExpression Id. */
-  int copy = 8;
+  int move = 8;
   /** RegularExpression Id. */
-  int move = 9;
+  int string = 9;
   /** RegularExpression Id. */
-  int string = 10;
+  int nullValue = 10;
   /** RegularExpression Id. */
-  int nullValue = 11;
+  int number = 11;
   /** RegularExpression Id. */
-  int number = 12;
+  int digit = 12;
   /** RegularExpression Id. */
-  int digit = 13;
+  int name = 13;
   /** RegularExpression Id. */
-  int name = 14;
-  /** RegularExpression Id. */
-  int nameValue = 15;
+  int nameValue = 14;
 
   /** Lexical state. */
   int DEFAULT = 0;
@@ -43,7 +41,6 @@ public interface ParserQueryToDatalogToJavaConstants {
     "\"\\r\"",
     "\"\\t\"",
     "\"\\n\"",
-    "\"get\"",
     "\"add\"",
     "\"delete\"",
     "\"copy\"",
