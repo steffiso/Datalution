@@ -23,23 +23,23 @@ import datalog.Rule;
 import datalog.RuleBody;
 
 /**
- * This class executes datalog rules in a top down approach it is derived of @see
- * MigrationExecution
+ * This class executes datalog rules in a top down approach it is derived of 
+ * MigrationExecution class
  * 
  * @author Stephanie Sombach and Katharina Wiech
  */
 
 public class TopDownExecution extends MigrationExecution {
 
-	/** the top goal for the topdown execution @see datalog.Predicate */
+	/** the top goal for the topdown execution */
 	private Predicate goal;
-	/** a rule goal tree with a top goal and subgoals @see RuleGoalTree */
+	/** a rule goal tree with a top goal and subgoals */
 	private RuleGoalTree tree;
 	/** this map stores attributes and their values for unification */
 	private Map<String, String> unificationMap;
-	/** facts that will be written to database @see datalog.Fact; */
+	/** facts that will be written to database */
 	private ArrayList<Fact> putFacts;
-	/** contains all information for magic sets @see datalog.MagicCondition; */
+	/** contains all information for magic sets  */
 	private List<MagicCondition> magicList = null;
 
 	/** Datastore wrapper for commands to the datastore */
@@ -116,7 +116,7 @@ public class TopDownExecution extends MigrationExecution {
 	 * 
 	 * @param tree
 	 *            every datalog rule represents a rulegoal tree which is
-	 *            executed top down @see datalog.RuleGoalTree
+	 *            executed top down
 	 * 
 	 * @return all temporary facts that match the rule head
 	 */
@@ -192,8 +192,7 @@ public class TopDownExecution extends MigrationExecution {
 	}
 
 	/**
-	 * this method checks whether a fact exists in the facts list @see
-	 * datalog.Fact
+	 * this method checks whether a fact exists in the facts list 
 	 * 
 	 * @param factList
 	 *            facts list
@@ -214,8 +213,7 @@ public class TopDownExecution extends MigrationExecution {
 	 * head Example A(?x):-B(?x,?y)--> only extract the ?x variable of B
 	 * 
 	 * @param results
-	 *            all results of rule body stored in a temp Predicate @see
-	 *            datalog.Predicate
+	 *            all results of rule body stored in a temp Predicate 
 	 * @param scheme
 	 *            scheme of rule head
 	 * @return a list of results stored in a list of strings
@@ -324,8 +322,9 @@ public class TopDownExecution extends MigrationExecution {
 
 	/**
 	 * -rename rules and delete Conditions with two variables, e.g., ?x=?y"
-	 * -generate Magic Conditions based on these Conditions @see
-	 * datalog.MagicCondition this method is, inter alia, important for not
+	 * -generate Magic Conditions based on these Conditions 
+	 * 
+	 *  this method is, inter alia, important for not
 	 * operations, e.g. "A(?x),not B(?y), ?x=?y" will be changed to -->
 	 * "A(?y),not B(?y)"
 	 * 
@@ -711,8 +710,7 @@ public class TopDownExecution extends MigrationExecution {
 	}
 
 	/**
-	 * if a condition for a magic set exists--> generate new MagicCondition @see
-	 * MagicCondition with all rules which need this magic set
+	 * if a condition for a magic set exists--> generate new MagicCondition with all rules which need this magic set
 	 * 
 	 * @param predicates
 	 *            predicates that will be identified for magicSet

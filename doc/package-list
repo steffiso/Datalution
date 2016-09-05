@@ -1,0 +1,10 @@
+datalog
+datastore
+lazyMigration
+parserEDBFactToJava
+parserGetToDatalog
+parserPutToDatalog
+parserQueryToDatalogToJava
+parserRuletoJava
+queryTests
+testTransaction

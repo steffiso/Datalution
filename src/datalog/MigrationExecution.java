@@ -22,7 +22,7 @@ public class MigrationExecution {
 	protected ArrayList<Rule> rules;
 	/**
 	 * map which holds information of renamed variables based on magic
-	 * conditions @see datalog.MagicCondition, especially needed for datastore queries
+	 * conditions, especially needed for datastore queries
 	 * because we need original names of properties
 	 */
 	protected Map<String, String[]> mapForRenamedVariables;
@@ -219,7 +219,7 @@ public class MigrationExecution {
 	 *            variables of left Predicate
 	 * @param rightList
 	 *            variables of right Predicate
-	 * @return list of positions @see PairOfInteger of equal variables in both predicates
+	 * @return list of positions of equal variables in both predicates
 	 */
 	protected ArrayList<PairofInteger> getEqualList(ArrayList<String> leftList,
 			ArrayList<String> rightList) {
