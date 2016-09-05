@@ -26,7 +26,7 @@ span.tab {
 	<form method="post">
 		<p>Put Character:</p>
 		<p>
-			<span class="tab">Put command:</span><input type="text" name="putCommand">
+			<span class="tab">Put command:</span><input type="text" name="putCommand" size="50">
 		</p>
 		<p>
 			<input type="submit" value="Create">

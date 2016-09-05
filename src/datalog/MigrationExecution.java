@@ -1,16 +1,17 @@
 package datalog;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
- * superclass with similar methods for both migration approaches: bottom up or
- * top down
+ * superclass for TopDownExecution with similar methods for both migration
+ * approaches: bottom up (not implemented yet!) or top down
  * 
  * @author Stephanie Sombach and Katharina Wiech
- * @version 1.0
  */
 
 public class MigrationExecution {
@@ -19,7 +20,11 @@ public class MigrationExecution {
 	protected ArrayList<Fact> facts;
 	/** all generated datalog rules */
 	protected ArrayList<Rule> rules;
-	/** map which holds information renamed variables based on magic conditions @see MagicCondition*/
+	/**
+	 * map which holds information of renamed variables based on magic
+	 * conditions @see datalog.MagicCondition, especially needed for datastore queries
+	 * because we need original names of properties
+	 */
 	protected Map<String, String[]> mapForRenamedVariables;
 
 	/**
@@ -53,7 +58,7 @@ public class MigrationExecution {
 	 * @param kind
 	 *            kind of predicate
 	 * @param number
-	 *            number of attributes of predicate scheme
+	 *            number of variables of predicate scheme
 	 * @return results of all facts for a given kind and scheme
 	 */
 	public ArrayList<ArrayList<String>> getResultsOfKind(String kind, int number) {
@@ -97,13 +102,12 @@ public class MigrationExecution {
 	 */
 	protected void renameVariablesOfPredicate(Predicate predicate, String left,
 			String right) {
-		if (predicate.getScheme().contains(right)) {
-			predicate.getScheme().set(predicate.getScheme().indexOf(right),
-					left);
-			mapForRenamedVariables.put(predicate.getKind()/* +prediacte.getNumber? */,
-					new String[] { left, right }); // ändern für override und
-													// testen ob bereits
-													// existiert
+		ArrayList<String> scheme = predicate.getScheme();
+		if (scheme.contains(right)) {
+			scheme.set(scheme.indexOf(right), left);
+			if (!mapForRenamedVariables.containsKey(predicate.getKind()))
+				mapForRenamedVariables.put(predicate.getKind(), new String[] {
+						left, right });
 		}
 	}
 
@@ -114,6 +118,7 @@ public class MigrationExecution {
 	 *            predicate to execute all selections on
 	 * @param conditions
 	 *            all conditions for selection
+	 * @return predicate after all selections
 	 */
 	protected Predicate selection(Predicate predResult,
 			ArrayList<Condition> conditions) {
@@ -128,23 +133,24 @@ public class MigrationExecution {
 	 * A(?x,?y),B(?x,?z),?y=?z. Only put values of A and B to end result which
 	 * satisfies condition ?y=?z.
 	 * 
-	 * @param p
+	 * @param predicate
 	 *            predicate to execute one selection on
-	 * @param cond
+	 * @param condition
 	 *            one condition for selection
+	 * @return predicate after one selection
 	 */
-	protected Predicate getTempCondResult(Predicate p, Condition cond) {
+	protected Predicate getTempCondResult(Predicate predicate, Condition condition) {
 		ArrayList<ArrayList<String>> facts = new ArrayList<ArrayList<String>>();
-		String rightOperand = cond.getRightOperand();
-		String leftOperand = cond.getLeftOperand();
-		String operator = cond.getOperator();
-		List<ArrayList<String>> factList = p.getRelation();
+		String rightOperand = condition.getRightOperand();
+		String leftOperand = condition.getLeftOperand();
+		String operator = condition.getOperator();
+		List<ArrayList<String>> factList = predicate.getRelation();
 		for (ArrayList<String> factOfFactList : factList) {
 			String left = "";
 			String right = "";
 			if (leftOperand.startsWith("?"))
-				if (p.getScheme().contains(leftOperand))
-					left = factOfFactList.get(p.getScheme()
+				if (predicate.getScheme().contains(leftOperand))
+					left = factOfFactList.get(predicate.getScheme()
 							.indexOf(leftOperand));
 				else {
 					facts.add(factOfFactList);
@@ -153,8 +159,8 @@ public class MigrationExecution {
 			else
 				left = leftOperand;
 			if (rightOperand.startsWith("?"))
-				if (p.getScheme().contains(rightOperand))
-					right = factOfFactList.get(p.getScheme().indexOf(
+				if (predicate.getScheme().contains(rightOperand))
+					right = factOfFactList.get(predicate.getScheme().indexOf(
 							rightOperand));
 				else {
 					facts.add(factOfFactList);
@@ -162,57 +168,58 @@ public class MigrationExecution {
 				}
 			else
 				right = rightOperand;
-			boolean condPredicate = false;
+			boolean isNumberFormat = false;
+			if ((isInteger(left) && isInteger(right))
+					|| (isDouble(left) && isDouble(right)))
+				isNumberFormat = true;
+			boolean equalsCondition = false;
 			switch (operator) {
 			case "=":
-				if ((isInteger(left) && isInteger(right))
-						|| (isDouble(left) && isDouble(right))) {
+				if (isNumberFormat) {
 					if (Integer.parseInt(left) == Integer.parseInt(right))
-						condPredicate = true;
+						equalsCondition = true;
 				} else if (left.equals(right))
-					condPredicate = true;
+					equalsCondition = true;
 				break;
 			case "!":
-				if ((isInteger(left) && isInteger(right))
-						|| (isDouble(left) && isDouble(right))) {
+				if (isNumberFormat) {
 					if (Integer.parseInt(left) != Integer.parseInt(right))
-						condPredicate = true;
+						equalsCondition = true;
 				} else if (!left.equals(right))
-					condPredicate = true;
+					equalsCondition = true;
 				break;
 			case "<":
-				if ((isInteger(left) && isInteger(right))
-						|| (isDouble(left) && isDouble(right))) {
+				if (isNumberFormat) {
 					if (Integer.parseInt(left) < Integer.parseInt(right))
-						condPredicate = true;
+						equalsCondition = true;
 				} else if (left.compareTo(right) < 0)
-					condPredicate = true;
+					equalsCondition = true;
 				break;
 			case ">":
-				if ((isInteger(left) && isInteger(right))
-						|| (isDouble(left) && isDouble(right))) {
+				if (isNumberFormat) {
 					if (Integer.parseInt(left) > Integer.parseInt(right))
-						condPredicate = true;
+						equalsCondition = true;
 				} else if (left.compareTo(right) > 0)
-					condPredicate = true;
+					equalsCondition = true;
 				break;
 			}
-			if (condPredicate == true) {
+			if (equalsCondition == true) {
 				facts.add(factOfFactList);
 			}
 		}
-		return new Predicate("temp", p.getScheme().size(), p.getScheme(), facts);
+		return new Predicate("temp", predicate.getScheme().size(), predicate.getScheme(), facts);
 
 	}
 
 	/**
-	 * find all equal attributes of two predicates for a join, e.g.: C(?y,?z) :-
+	 * find all equal variables of two predicates for a join, e.g.: C(?y,?z) :-
 	 * A(?x,?y),B(?x,?z). --> ?x is a join attribute
 	 * 
 	 * @param leftList
-	 *            attributes of left Predicate
+	 *            variables of left Predicate
 	 * @param rightList
-	 *            attributes of right Predicate
+	 *            variables of right Predicate
+	 * @return list of positions @see PairOfInteger of equal variables in both predicates
 	 */
 	protected ArrayList<PairofInteger> getEqualList(ArrayList<String> leftList,
 			ArrayList<String> rightList) {
@@ -223,6 +230,144 @@ public class MigrationExecution {
 						&& leftList.get(i).equals(rightList.get(j)))
 					list.add(new PairofInteger(i, j));
 		return list;
+	}
+
+	/**
+	 * stratification of the rules datalog has stratification restrictions on
+	 * the use of negation and recursion -> so the rules can be executed in a
+	 * proper way Note: the mehtod is not used now (but maybe in the future)
+	 * because : -the rules in our scenario are already in a proper order -we
+	 * haven't implemented bottom up execution yet
+	 * 
+	 * @param rules
+	 *            rules to be stratisfied
+	 */
+	@SuppressWarnings("unused")
+	private void orderStratum(ArrayList<Rule> rules) throws Exception {
+		int size = rules.size() - 1;
+		Map<String, Integer> mapStratum = new HashMap<String, Integer>();
+
+		for (Rule rule : rules) {
+			String kindHead = rule.getHead().getKind();
+			mapStratum.put(kindHead, 0);
+			for (Predicate predicate : rule.getPredicates()) {
+				String kindPredicate = predicate.getKind();
+				mapStratum.put(kindPredicate, 0);
+			}
+		}
+
+		boolean changed;
+		do {
+			changed = false;
+			for (Rule rule : rules)
+				for (Predicate predicate : rule.getPredicates()) {
+					String head = rule.getHead().getKind();
+					if (predicate.isNot()) {
+						int headStratum = mapStratum.get(head);
+						int predicateStratum = mapStratum.get(predicate
+								.getKind());
+						int newStratum = Math.max(headStratum,
+								predicateStratum + 1);
+						if (newStratum > size)
+							throw new Exception("no stratification possible");
+						if (headStratum < newStratum) {
+							mapStratum.put(head, newStratum);
+							changed = true;
+						}
+					} else {
+						int headStratum = mapStratum.get(head);
+						int predicateStratum = mapStratum.get(predicate
+								.getKind());
+						int newStratum = Math
+								.max(headStratum, predicateStratum);
+						if (headStratum < newStratum) {
+							mapStratum.put(head, newStratum);
+							changed = true;
+						}
+					}
+				}
+		} while (changed);
+
+		// save stratum in predicate objects
+		for (Rule r : rules) {
+			String head = r.getHead().getKind();
+			r.getHead().setStratum(mapStratum.get(head));
+		}
+
+		sortRules(rules, mapStratum);
+
+	}
+
+	/**
+	 * generate dependency map return : e.g.. [Mission2, ( Mission,
+	 * latestMission, Player, latestPlayer)]
+	 */
+	private Map<String, ArrayList<String>> generateDependencyMap(
+			ArrayList<Rule> rules) {
+		Map<String, ArrayList<String>> dependencyMap = new HashMap<String, ArrayList<String>>();
+		for (Rule rule : rules) {
+			String headKind = rule.getHead().getKind();
+			ArrayList<String> bodyKind = rule.getDependencies();
+			if (dependencyMap.get(headKind) == null)
+				dependencyMap.put(headKind, bodyKind);
+			else {
+				ArrayList<String> currentDependencies = new ArrayList<String>();
+				currentDependencies = dependencyMap.get(headKind);
+				for (String oneKind : bodyKind) {
+					if (!currentDependencies.contains(oneKind))
+						currentDependencies.add(oneKind);
+				}
+			}
+		}
+
+		return dependencyMap;
+	}
+
+	/**
+	 * sort rules by stratum values and generated dependencies
+	 */
+
+	private void sortRules(ArrayList<Rule> rules,
+			Map<String, Integer> mapStratum) {
+		Map<String, ArrayList<String>> dependencyMap = generateDependencyMap(rules);
+		Map<String, Integer> rankingMap = mapStratum;
+
+		// set default ranking value which is the stratum value
+		for (Rule rule : rules) {
+			int stratum = rule.getHead().getStratum();
+			rule.getHead().setRanking(stratum);
+		}
+
+		boolean changed = true;
+		do {
+			changed = false;
+			for (Rule rule : rules) {
+				String head = rule.getHead().getKind();
+				int headRanking = rule.getHead().getRanking();
+
+				ArrayList<String> dependentPredicates = dependencyMap.get(head);
+				for (String predicate : dependentPredicates) {
+					int predicateStratum = rankingMap.get(predicate);
+					if (headRanking <= predicateStratum) {
+						rankingMap.put(rule.getHead().getKind(),
+								predicateStratum + 1);
+						rule.getHead().setRanking(predicateStratum + 1);
+						changed = true;
+					}
+				}
+			}
+		} while (changed);
+
+		Collections.sort(rules, new Comparator<Rule>() {
+			@Override
+			public int compare(Rule rule1, Rule rule2) {
+				if (rule1.getHead().getRanking() > rule2.getHead().getRanking())
+					return 1;
+				if (rule1.getHead().getRanking() < rule2.getHead().getRanking())
+					return -1;
+				return 0;
+			}
+		});
 	}
 
 	protected static boolean isInteger(String value) {
@@ -244,28 +389,28 @@ public class MigrationExecution {
 	}
 
 	protected class PairofInteger {
-		private int p1;
-		private int p2;
+		private int position1;
+		private int position2;
 
 		PairofInteger(int p1, int p2) {
-			this.setP1(p1);
-			this.setP2(p2);
+			this.setPosition1(p1);
+			this.setPosition2(p2);
 		}
 
-		public int getP1() {
-			return p1;
+		public int getPosition1() {
+			return position1;
 		}
 
-		public void setP1(int p1) {
-			this.p1 = p1;
+		public void setPosition1(int position1) {
+			this.position1 = position1;
 		}
 
-		public int getP2() {
-			return p2;
+		public int getPosition2() {
+			return position2;
 		}
 
-		public void setP2(int p2) {
-			this.p2 = p2;
+		public void setPosition2(int position2) {
+			this.position2 = position2;
 		}
 	}
 }

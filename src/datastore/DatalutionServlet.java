@@ -8,7 +8,6 @@ package datastore;
 import java.io.IOException;
 import java.io.StringReader;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
 import java.util.InputMismatchException;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
@@ -22,7 +21,6 @@ import parserPutToDatalog.ParserForPut;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
 
-import datalog.Rule;
 import parserGetToDatalog.ParserForGet;
 
 @SuppressWarnings("serial")
@@ -72,8 +70,7 @@ public class DatalutionServlet extends HttpServlet {
 					new StringReader(getCommand));
 			
 			try {
-				@SuppressWarnings("unused")
-				ArrayList<Rule> rules = parserget.getJavaRules(dds);				
+				parserget.setAttributesOfGetCommand();				
 				userId = parserget.getId();
 				kind = parserget.getKind();
 				req.setAttribute("username", userId);

@@ -2,17 +2,31 @@ package datalog;
 
 import java.util.ArrayList;
 
+/**
+ * A class for representing datalog predicates a datalog rule consists of
+ * several predicates Explanation of predicate based on this example: A(?x,?y)
+ */
+
 public class Predicate {
 
-	// eine Relation innerhalb einer Query, Bsp. A(?x,?y)
-	private String kind; // --> A
-	private ArrayList<String> scheme; // --> (?x,?y)
-	private int numberSchemeEntries; // --> 2
+	/** kind --> A */
+	private String kind;
+	/** scheme --> (?x,?y), stores all variables as string */
+	private ArrayList<String> scheme;
+	/** number --> 2 */
+	private int numberSchemeEntries;
+	/** is it a "not"/"negated" predicate? */
 	private boolean isNot = false;
-	private boolean isHead = false;
+	/**
+	 * is it a "latest" predicate? (marked with: "$", this predicate defines
+	 * latest facts/entities in the datastore)
+	 */
 	private boolean latest = false;
+	/** this information is important for ordering rules in a correct sequence */
 	private int stratum = 0;
+	/** this information is important for ordering rules in a correct sequence */
 	private int ranking = 0;
+	/** results of predicate are stored here */
 	private ArrayList<ArrayList<String>> relation;
 
 	public Predicate(String kind, int number, ArrayList<String> scheme,
@@ -87,14 +101,6 @@ public class Predicate {
 		this.scheme = scheme;
 	}
 
-	public boolean isHead() {
-		return isHead;
-	}
-
-	public void setHead(boolean isHead) {
-		this.isHead = isHead;
-	}
-
 	@Override
 	public String toString() {
 		String isNot = isNot() ? "not" : "";
@@ -105,7 +111,6 @@ public class Predicate {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + (isHead ? 1231 : 1237);
 		result = prime * result + (isNot ? 1231 : 1237);
 		result = prime * result + ((kind == null) ? 0 : kind.hashCode());
 		result = prime * result + numberSchemeEntries;
@@ -122,8 +127,6 @@ public class Predicate {
 		if (getClass() != obj.getClass())
 			return false;
 		Predicate other = (Predicate) obj;
-		if (isHead != other.isHead)
-			return false;
 		if (isNot != other.isNot)
 			return false;
 		if (kind == null) {
@@ -148,6 +151,5 @@ public class Predicate {
 	public void setLatest(boolean latest) {
 		this.latest = latest;
 	}
-	
 
 }

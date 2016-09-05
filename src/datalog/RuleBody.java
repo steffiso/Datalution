@@ -2,10 +2,15 @@ package datalog;
 
 import java.util.ArrayList;
 
+/**
+ * This class represents the rule body of a datalog rule, a rule body consists
+ * of several predicates and their conditions @see Rule
+ */
+
 public class RuleBody {
 	private ArrayList<Predicate> predicates;
 	private ArrayList<Condition> conditions;
-	
+
 	public RuleBody(ArrayList<Predicate> values, ArrayList<Condition> conditons) {
 		super();
 		this.setPredicates(values);
@@ -27,8 +32,8 @@ public class RuleBody {
 	public void setConditions(ArrayList<Condition> conditions) {
 		this.conditions = conditions;
 	}
-	
-	public String toString(){
+
+	public String toString() {
 		return predicates.toString() + "," + conditions.toString();
 	}
 
@@ -64,6 +69,5 @@ public class RuleBody {
 			return false;
 		return true;
 	}
-	
-	
+
 }

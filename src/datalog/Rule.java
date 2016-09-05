@@ -2,13 +2,21 @@ package datalog;
 
 import java.util.ArrayList;
 
+/**
+ * A class for representing a datalog rule Explanation of Rule based on this
+ * example: C(?y):- A(?x,?y),B(?z,?y),?y=2
+ */
+
 public class Rule {
 
+	/** ruleHead --> C(?y) */
 	private Predicate ruleHead;
+	/** ruleBody --> A(?x,?y),B(?z,?y),?y=2 */
 	private RuleBody ruleBody;
+	/** this information is important for ordering rules in a correct sequence */
 	private ArrayList<String> dependencies;
-	
-	public Rule(Predicate ruleHead, RuleBody ruleBody){
+
+	public Rule(Predicate ruleHead, RuleBody ruleBody) {
 		this.ruleHead = ruleHead;
 		this.setRuleBody(ruleBody);
 		setDependencies();
@@ -45,28 +53,31 @@ public class Rule {
 	public void setConditions(ArrayList<Condition> conditions) {
 		ruleBody.setConditions(conditions);
 	}
-	
-	public void setDependencies(){
+
+	public void setDependencies() {
 		dependencies = new ArrayList<String>();
-		for (Predicate p:ruleBody.getPredicates()) {
-			String kind = p.getKind();
-			if (!dependencies.contains(kind)) dependencies.add(kind);
-		}		
+		for (Predicate predicate : ruleBody.getPredicates()) {
+			String kind = predicate.getKind();
+			if (!dependencies.contains(kind))
+				dependencies.add(kind);
+		}
 	}
 
-	public ArrayList<String> getDependencies(){
+	public ArrayList<String> getDependencies() {
 		return dependencies;
 	}
-	
+
 	@Override
-	public String toString(){
-		String rule =  ruleHead.toString() + ":-" ;
+	public String toString() {
+		String rule = ruleHead.toString() + ":-";
 		ArrayList<Predicate> predicates = ruleBody.getPredicates();
 		ArrayList<Condition> conditions = ruleBody.getConditions();
-		if (predicates != null) rule = rule + predicates.toString();
-		if (conditions != null) rule = rule + conditions.toString();
-		
-		return rule+"\n";
+		if (predicates != null)
+			rule = rule + predicates.toString();
+		if (conditions != null)
+			rule = rule + conditions.toString();
+
+		return rule + "\n";
 	}
 
 	@Override
@@ -101,7 +112,5 @@ public class Rule {
 			return false;
 		return true;
 	}
-	
-	
 
 }

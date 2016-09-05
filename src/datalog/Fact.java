@@ -2,13 +2,19 @@ package datalog;
 
 import java.util.ArrayList;
 
-public class Fact {
-	
-	// Speichere die Werte eines Faktes hier ab. Bsp. A(1,2)
+/**
+ * This class stores all information of datalog edb and idb facts - edb facts
+ * are values which are stored in the database and known at the beginning - idb
+ * facts are derived values from datalog rules for example, one fact will be
+ * represented as follows: A(1,2)
+ */
 
-	private String kind; // Wert für kind --> A
-	private ArrayList<String> listOfValues; // alle Werte innerhalb eines Faktes
-											// --> (1,2)
+public class Fact {
+
+	/** kind --> A */
+	private String kind;
+	/** all values of fact --> (1,2) */
+	private ArrayList<String> listOfValues;
 
 	public Fact(String kind, ArrayList<String> values) {
 		this.kind = kind;
@@ -30,13 +36,13 @@ public class Fact {
 	public void setKind(String kind) {
 		this.kind = kind;
 	}
-	
-	public String toString(){
+
+	public String toString() {
 		String fact = kind + "(";
-		for (String s: listOfValues){
+		for (String s : listOfValues) {
 			fact = fact + s + ",";
 		}
-		fact = fact.substring(0, fact.length()-1);
+		fact = fact.substring(0, fact.length() - 1);
 		fact = fact + ").";
 		return fact;
 	}
@@ -73,6 +79,4 @@ public class Fact {
 		return true;
 	}
 
-	
-	
 }

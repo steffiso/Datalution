@@ -19,6 +19,10 @@ import org.junit.Test;
 import com.google.appengine.api.datastore.Key;
 import datastore.DatalutionDatastoreService;
 
+/**
+ * A unit test class for migrating entities in datastore with multiple users
+ */
+
 public class ConcurrentTransaction {
 
 	private final LocalServiceTestHelper helper = new LocalServiceTestHelper(
@@ -50,6 +54,9 @@ public class ConcurrentTransaction {
 		ds.put(player2);
 	}
 
+	/**
+	 * test two concurrent callings of the put command
+	 */
 	@Test(expected = ConcurrentModificationException.class)
 	public void testConcurrentPutWithTransaction() throws InterruptedException,
 			EntityNotFoundException {
@@ -111,9 +118,12 @@ public class ConcurrentTransaction {
 
 	}
 
+	/**
+	 * test one single put in an embedded transaction
+	 */
 	@Test
-	public void testSinglePutWithEmbeddedTransaction() throws InterruptedException,
-			EntityNotFoundException {
+	public void testSinglePutWithEmbeddedTransaction()
+			throws InterruptedException, EntityNotFoundException {
 		DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
 		Key parent = KeyFactory.createKey("Player", 1);
 

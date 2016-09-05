@@ -116,7 +116,7 @@ public class DatalutionDatastoreService {
 			// prepare lazy migration
 			ArrayList<Rule> datalogRules = prepareRulesForLazyMigration(kind, id);
 			
-			ArrayList<Map<String, String>> uniMap = prepareUniMapForLazyMigration(kind, id);			
+			Map<String, String> uniMap = prepareUniMapForLazyMigration(kind, id);			
 
 			// get list of schema attributes
 			Schema latestSchema  = getLatestSchema(kind);
@@ -157,13 +157,11 @@ public class DatalutionDatastoreService {
 	 * @param id Id of needed entity (e.g. 1)
 	 * @return list of unification maps
 	 */
-	public ArrayList<Map<String, String>> prepareUniMapForLazyMigration(String kind, String id){
-		Map<String, String> attributeMap = new TreeMap<String, String>();
-		attributeMap.put("kind", kind);
-		attributeMap.put("position", "0");
-		attributeMap.put("value", id);
-		ArrayList<Map<String, String>> uniMap = new ArrayList<Map<String, String>>();
-		uniMap.add(attributeMap);
+	public Map<String, String> prepareUniMapForLazyMigration(String kind, String id){
+		Map<String, String> uniMap = new TreeMap<String, String>();
+		uniMap.put("kind", kind);
+		uniMap.put("position", "0");
+		uniMap.put("value", id);
 		
 		return uniMap;
 	}

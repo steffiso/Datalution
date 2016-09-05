@@ -22,6 +22,10 @@ import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
 
 import datastore.DatalutionDatastoreService;
 
+/**
+ * A unit test for a sequence of commands (like adding, copying...)
+ */
+
 public class ComplexQuery {
 
 	private final LocalServiceTestHelper helper = new LocalServiceTestHelper(
@@ -43,14 +47,16 @@ public class ComplexQuery {
 		DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
 		DatalutionDatastoreService dds = new DatalutionDatastoreService(ds);
 		dds.addStartEntities();
-		
+
 		List<String> inputList = new ArrayList<String>();
-		inputList.add("add Player.score=100"); //add command
+		inputList.add("add Player.score=100"); // add command
 		inputList
-				.add("copy Player.score to Mission where Player.id=Mission.pid"); //copy command
+				.add("copy Player.score to Mission where Player.id=Mission.pid"); // copy
+																					// command
 		inputList
-				.add("move Player.name to Mission where Player.id=Mission.pid"); //move command
-		inputList.add("add Mission.priority=1"); //add command
+				.add("move Player.name to Mission where Player.id=Mission.pid"); // move
+																					// command
+		inputList.add("add Mission.priority=1"); // add command
 
 		for (String input : inputList)
 			try {
@@ -60,31 +66,33 @@ public class ComplexQuery {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-		
+
 		Entity userPlayer;
 		try {
-			userPlayer = dds.get("Player", "1");	
+			userPlayer = dds.get("Player", "1");
 			assertEquals("{score=100, ts=0, id=1, points=150}", userPlayer
 					.getProperties().toString());
-		} catch (InputMismatchException | ParseException | IOException | parserRuletoJava.ParseException
-				| parserPutToDatalog.ParseException | URISyntaxException | EntityNotFoundException | parserGetToDatalog.ParseException e) {
+		} catch (InputMismatchException | ParseException | IOException
+				| parserRuletoJava.ParseException
+				| parserPutToDatalog.ParseException | URISyntaxException
+				| EntityNotFoundException | parserGetToDatalog.ParseException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}  
+		}
 
-		
 		Entity userMission;
 		try {
-			 userMission = dds.get("Mission", "1");
+			userMission = dds.get("Mission", "1");
 			assertEquals(
 					"{id=1, title='go to library', ts=0, priority=1, name='Lisa S.', score=100, pid=1}",
 					userMission.getProperties().toString());
-		} catch (InputMismatchException | ParseException | IOException | parserRuletoJava.ParseException
-				| parserPutToDatalog.ParseException | URISyntaxException | EntityNotFoundException | parserGetToDatalog.ParseException e) {
+		} catch (InputMismatchException | ParseException | IOException
+				| parserRuletoJava.ParseException
+				| parserPutToDatalog.ParseException | URISyntaxException
+				| EntityNotFoundException | parserGetToDatalog.ParseException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
-
 
 }
