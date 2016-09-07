@@ -1,24 +1,44 @@
-<!-- Indices written at Sun, 4 Sep 2016 21:43:07 CEST -->
+<!-- Indices written at Wed, 7 Sep 2016 23:45:00 CEST -->
 
 <datastore-indexes>
 
-    <!-- Used 1 time in query history -->
+    <!-- Used 14 times in query history -->
     <datastore-index kind="SchemaPlayer" ancestor="true" source="auto">
         <property name="ts" direction="desc"/>
     </datastore-index>
 
-    <!-- Used 17 times in query history -->
-    <datastore-index kind="SchemaMission" ancestor="true" source="auto">
+    <!-- Used 4 times in query history -->
+    <datastore-index kind="Player1" ancestor="true" source="auto">
+        <property name="ts" direction="desc"/>
+    </datastore-index>
+
+    <!-- Used 3 times in query history -->
+    <datastore-index kind="Player2" ancestor="true" source="auto">
         <property name="ts" direction="desc"/>
     </datastore-index>
 
     <!-- Used 7 times in query history -->
-    <datastore-index kind="Mission2" ancestor="true" source="auto">
+    <datastore-index kind="SchemaMission" ancestor="true" source="auto">
         <property name="ts" direction="desc"/>
     </datastore-index>
 
     <!-- Used 2 times in query history -->
+    <datastore-index kind="Mission2" ancestor="true" source="auto">
+        <property name="ts" direction="desc"/>
+    </datastore-index>
+
+    <!-- Used 1 time in query history -->
     <datastore-index kind="Mission1" ancestor="true" source="auto">
+        <property name="ts" direction="desc"/>
+    </datastore-index>
+
+    <!-- Used 2 times in query history -->
+    <datastore-index kind="Player3" ancestor="true" source="auto">
+        <property name="ts" direction="desc"/>
+    </datastore-index>
+
+    <!-- Used 1 time in query history -->
+    <datastore-index kind="Player4" ancestor="true" source="auto">
         <property name="ts" direction="desc"/>
     </datastore-index>
 

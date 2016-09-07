@@ -1,28 +1,29 @@
 package datastore;
-/**
- * This servlet provides the user console for Datalution with Datastore.
- * Supported commands (with a brief example): 
- * - get (e.g. "get Player.id=1")
- * - put (e.g. "put Player(1,"Lisa S.",200)")
- */
+
 import java.io.IOException;
 import java.io.StringReader;
-import java.net.URISyntaxException;
-import java.util.InputMismatchException;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import parserPutToDatalog.ParseException;
 import parserPutToDatalog.ParserForPut;
 
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
+import com.google.appengine.api.datastore.Key;
+import com.google.appengine.api.datastore.KeyFactory;
 
+import datastore.DatalutionDatastoreService;
+import datastore.Schema;
 import parserGetToDatalog.ParserForGet;
-
+/**
+ * This servlet provides the user console for Datalution with Datastore.
+ * Supported commands (with a brief example): 
+ * - get (e.g. "get Player.id=1")
+ * - put (e.g. "put Player(1,"Lisa S.",200)")
+ */
 @SuppressWarnings("serial")
 public class DatalutionServlet extends HttpServlet {
 	
@@ -46,7 +47,7 @@ public class DatalutionServlet extends HttpServlet {
 						.start();
 				dds.put(childPlayer);
 				req.setAttribute("result", putCommand + " was successful! Added entity to Datastore!");
-			} catch (InputMismatchException | ParseException | EntityNotFoundException e) {
+			} catch (Exception e) {
 				req.setAttribute("result", e.getMessage());
 			}
 		}		
@@ -74,8 +75,7 @@ public class DatalutionServlet extends HttpServlet {
 				userId = parserget.getId();
 				kind = parserget.getKind();
 				req.setAttribute("username", userId);
-			} catch (InputMismatchException | parserGetToDatalog.ParseException |
-					parserRuletoJava.ParseException | EntityNotFoundException  e) {
+			} catch (Exception  e) {
 				req.setAttribute("result", e.getMessage());
 			} 			
 		}
@@ -83,10 +83,9 @@ public class DatalutionServlet extends HttpServlet {
 		if (getCommand != null && kind != null) {
 			// parsing of get command was successful => try to find an entity in Datastore
 			try {
-				userPlayer = dds.get(kind, Integer.toString(userId));
-			} catch (InputMismatchException | parserQueryToDatalogToJava.ParseException
-					| parserRuletoJava.ParseException | ParseException | 
-					URISyntaxException | EntityNotFoundException | parserGetToDatalog.ParseException e) {
+				Key key = KeyFactory.createKey(kind, Integer.toString(userId));
+				userPlayer = dds.get(key);
+			} catch (Exception e) {
 				req.setAttribute("result", e.toString());
 			}
 

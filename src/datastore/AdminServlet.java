@@ -9,17 +9,12 @@ package datastore;
  * - start (adds Player and Mission start entities for test cases)
  */
 import java.io.IOException;
-import java.util.InputMismatchException;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import com.google.appengine.api.datastore.EntityNotFoundException;
-
-import parserQueryToDatalogToJava.ParseException;
 
 @SuppressWarnings("serial")
 public class AdminServlet extends HttpServlet {
@@ -47,7 +42,7 @@ public class AdminServlet extends HttpServlet {
 						dds.addNewEntity(newEntity[1]);
 						req.setAttribute("result", "Adding new entity type " + newEntity[1] + " was successful!\n"
 								+ "Now you can put entities within the user console!");
-					} catch (EntityNotFoundException | InputMismatchException e) {
+					} catch (Exception e) {
 						req.setAttribute("result", e.getMessage());
 					}
 			}
@@ -57,9 +52,7 @@ public class AdminServlet extends HttpServlet {
 					datalogRules = dds.saveSchemaChange(command);
 					req.setAttribute("result", "Schema change was successful! " +
 							"\n\nGenerated Datalog rules:\n" + datalogRules);
-				} catch (InputMismatchException | ParseException | 
-						parserRuletoJava.ParseException | parserQueryToDatalogToJava.TokenMgrError 
-						| EntityNotFoundException e) {
+				} catch (Exception e) {
 					// if an error occurs, show error message in result text box
 					req.setAttribute("result", e.getMessage());
 				}

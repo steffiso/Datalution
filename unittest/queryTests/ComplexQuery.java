@@ -2,21 +2,18 @@ package queryTests;
 
 import static org.junit.Assert.*;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.InputMismatchException;
 import java.util.List;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import parserQueryToDatalogToJava.ParseException;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
-import com.google.appengine.api.datastore.EntityNotFoundException;
+import com.google.appengine.api.datastore.Key;
+import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.tools.development.testing.LocalDatastoreServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
 
@@ -49,48 +46,44 @@ public class ComplexQuery {
 		dds.addStartEntities();
 
 		List<String> inputList = new ArrayList<String>();
-		inputList.add("add Player.score=100"); // add command
-		inputList
-				.add("copy Player.score to Mission where Player.id=Mission.pid"); // copy
-																					// command
-		inputList
-				.add("move Player.name to Mission where Player.id=Mission.pid"); // move
-																					// command
-		inputList.add("add Mission.priority=1"); // add command
+		
+		String addScoreCommand = "add Player.score=100";
+		inputList.add(addScoreCommand);
+		
+		String copyCommand = "copy Player.score to Mission where Player.id=Mission.pid";
+		inputList.add(copyCommand); 
+				
+		String moveCommand = "move Player.name to Mission where Player.id=Mission.pid";
+		inputList.add(moveCommand);
+							
+		String addPriorityCommand  = "add Mission.priority=1";
+		inputList.add(addPriorityCommand);
 
 		for (String input : inputList)
 			try {
 				dds.saveSchemaChange(input);
-			} catch (InputMismatchException | ParseException | IOException
-					| parserRuletoJava.ParseException | EntityNotFoundException e) {
-				// TODO Auto-generated catch block
+			} catch (Exception e) {
 				e.printStackTrace();
 			}
 
 		Entity userPlayer;
 		try {
-			userPlayer = dds.get("Player", "1");
+			Key keyPlayer = KeyFactory.createKey("Player", 1);
+			userPlayer = dds.get(keyPlayer);
 			assertEquals("{score=100, ts=0, id=1, points=150}", userPlayer
 					.getProperties().toString());
-		} catch (InputMismatchException | ParseException | IOException
-				| parserRuletoJava.ParseException
-				| parserPutToDatalog.ParseException | URISyntaxException
-				| EntityNotFoundException | parserGetToDatalog.ParseException e) {
-			// TODO Auto-generated catch block
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 
 		Entity userMission;
 		try {
-			userMission = dds.get("Mission", "1");
+			Key keyMission = KeyFactory.createKey("Mission", 1);
+			userMission = dds.get(keyMission);
 			assertEquals(
 					"{id=1, title='go to library', ts=0, priority=1, name='Lisa S.', score=100, pid=1}",
 					userMission.getProperties().toString());
-		} catch (InputMismatchException | ParseException | IOException
-				| parserRuletoJava.ParseException
-				| parserPutToDatalog.ParseException | URISyntaxException
-				| EntityNotFoundException | parserGetToDatalog.ParseException e) {
-			// TODO Auto-generated catch block
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
