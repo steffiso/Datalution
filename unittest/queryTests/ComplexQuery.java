@@ -68,7 +68,7 @@ public class ComplexQuery {
 
 		Entity userPlayer;
 		try {
-			Key keyPlayer = KeyFactory.createKey("Player", 1);
+			Key keyPlayer = KeyFactory.createKey("Player", "1");
 			userPlayer = dds.get(keyPlayer);
 			assertEquals("{score=100, ts=0, id=1, points=150}", userPlayer
 					.getProperties().toString());
@@ -78,7 +78,7 @@ public class ComplexQuery {
 
 		Entity userMission;
 		try {
-			Key keyMission = KeyFactory.createKey("Mission", 1);
+			Key keyMission = KeyFactory.createKey("Mission", "1");
 			userMission = dds.get(keyMission);
 			assertEquals(
 					"{id=1, title='go to library', ts=0, priority=1, name='Lisa S.', score=100, pid=1}",
