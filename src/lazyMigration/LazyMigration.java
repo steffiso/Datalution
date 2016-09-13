@@ -7,6 +7,7 @@ import java.util.InputMismatchException;
 import java.util.Map;
 
 import com.google.appengine.api.datastore.EntityNotFoundException;
+import com.google.appengine.api.datastore.Transaction;
 
 import parserPutToDatalog.ParseException;
 import datalog.Fact;
@@ -23,10 +24,12 @@ public class LazyMigration {
 	private ArrayList<Rule> rules;
 	private Predicate goal;
 	private Map<String, String> unificationMap;
+	private Transaction txn;
 
-	public LazyMigration(ArrayList<Fact> facts, ArrayList<Rule> rules,
+	public LazyMigration(Transaction txn, ArrayList<Rule> rules,
 			Predicate goal, Map<String, String> unificationMap) {
-		this.facts = facts;
+		this.txn=txn;
+		this.facts = new ArrayList<Fact>();
 		this.rules = rules;
 		this.goal = goal;
 		this.unificationMap = unificationMap;
@@ -36,7 +39,7 @@ public class LazyMigration {
 			IOException, URISyntaxException, InputMismatchException,
 			EntityNotFoundException {
 
-		TopDownExecution lazy = new TopDownExecution(facts, rules, goal,
+		TopDownExecution lazy = new TopDownExecution(txn,facts, rules, goal,
 				unificationMap);
 		ArrayList<Fact> getAnswers = lazy.getAnswers();
 		if (getAnswers.size() == 1) {

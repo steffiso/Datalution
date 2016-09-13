@@ -3,6 +3,7 @@ package testTransaction;
 import static org.junit.Assert.*;
 
 import java.util.ConcurrentModificationException;
+
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
@@ -17,6 +18,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.google.appengine.api.datastore.Key;
+
 import datastore.DatalutionDatastoreService;
 
 /**
@@ -99,27 +101,41 @@ public class ConcurrentTransaction {
 				txn2.rollback();
 			}
 
-			Entity latestEntity = dds.getLatestEntity("Player1", 1);
+			Entity latestEntity = dds.getLatestEntity(null,"Player1", 1);
 			assertEquals("Lisa1", latestEntity.getProperty("name"));
 
-			// retry txn2
-			txn2 = ds.beginTransaction();
-			ts2 = dds.getLatestTimestamp(txn2, "Player1", 1) + 1;
-			assertEquals(4, ts2);
-			Entity e3 = new Entity("Player1", "1" + Integer.toString(ts2),
-					parent);
-			e3.setProperty("name", "Lisa2");
-			e3.setProperty("ts", ts2);
-			ds.put(txn2, e3);
-			txn2.commit();
-			latestEntity = dds.getLatestEntity("Player1", 1);
-			assertEquals("Lisa2", latestEntity.getProperty("name"));
+			// after that you could retry txn2, see testSinglePut
 		}
 
 	}
 
 	/**
-	 * test one single put in an embedded transaction
+	 * test a single put in one transaction
+	 */
+	@Test
+	public void testSinglePut()
+			throws InterruptedException, EntityNotFoundException {
+		DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
+		Key parent = KeyFactory.createKey("Player", 1);
+
+		putEntities(ds, parent);
+		DatalutionDatastoreService dds = new DatalutionDatastoreService(ds);
+		Transaction txn = ds.beginTransaction();
+		int ts = 0;
+			ts = dds.getLatestTimestamp(txn, "Player1", 1) + 1;
+			assertEquals(3, ts);
+			Entity e = new Entity("Player1", "1" + Integer.toString(ts),
+					parent);
+			e.setProperty("name", "Lisa2");
+			e.setProperty("ts", ts);
+			ds.put(txn, e);
+			txn.commit();
+			Entity latestEntity = dds.getLatestEntity(null,"Player1", 1);
+			assertEquals("Lisa2", latestEntity.getProperty("name"));
+	}
+	
+	/**
+	 * test the provided put method of DatalutionDatastoreService Class in an embedded transaction
 	 */
 	@Test
 	public void testSinglePutWithEmbeddedTransaction()
@@ -136,7 +152,7 @@ public class ConcurrentTransaction {
 		e1.setProperty("id", 1);
 		dds.put(e1);
 		txn.commit();
-		Entity latestEntity = dds.getLatestEntity("Player1", 1);
+		Entity latestEntity = dds.getLatestEntity(null,"Player1", 1);
 		assertEquals("Lisa1", latestEntity.getProperty("name"));
 	}
 }

@@ -10,6 +10,7 @@ import java.util.Map;
 
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
+import com.google.appengine.api.datastore.Transaction;
 
 import parserPutToDatalog.ParseException;
 import datastore.DatalutionDatastoreService;
@@ -44,9 +45,11 @@ public class TopDownExecution extends MigrationExecution {
 
 	/** Datastore wrapper for commands to the datastore */
 	private DatalutionDatastoreService db = new DatalutionDatastoreService();
+	private Transaction txn;
 
 	/**
 	 * constuctor: set edb facts, rules, goal and unificationMap
+	 * @param txn 
 	 * 
 	 * @param facts
 	 *            edb facts
@@ -57,9 +60,10 @@ public class TopDownExecution extends MigrationExecution {
 	 * @param unificationMap
 	 *            stores information for unification
 	 */
-	public TopDownExecution(ArrayList<Fact> facts, ArrayList<Rule> rules,
+	public TopDownExecution(Transaction txn, ArrayList<Fact> facts, ArrayList<Rule> rules,
 			Predicate goal, Map<String, String> unificationMap) {
 		super(facts, rules);
+		this.txn=txn;
 		this.goal = goal;
 		this.unificationMap = unificationMap;
 	}
@@ -571,12 +575,11 @@ public class TopDownExecution extends MigrationExecution {
 				String id = predicate.getScheme().get(0);
 				Entity resultEntity = null;
 				if (getLatest) {
-					resultEntity = db.getLatestEntity(kind,
+					resultEntity = db.getLatestEntity(txn,kind,
 							Integer.parseInt(id));
 				}
 				if (resultEntity != null) {
-
-					if (resultEntity.getProperties().size() == number) {
+		
 						found = true;
 
 						// get values of entity based on predicate scheme
@@ -588,8 +591,7 @@ public class TopDownExecution extends MigrationExecution {
 						if (!factExists(facts, v))
 							facts.add(v);
 						values.add(valueNew);
-
-					}
+		
 				}
 			}
 		// set results to predicate
