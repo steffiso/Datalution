@@ -23,6 +23,7 @@ import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Transaction;
 import com.google.appengine.api.datastore.Query.SortDirection;
+import com.google.appengine.api.datastore.TransactionOptions;
 import com.google.appengine.api.memcache.MemcacheService;
 import com.google.appengine.api.memcache.MemcacheService.IdentifiableValue;
 
@@ -32,6 +33,7 @@ import lazyMigration.LazyMigration;
 import parserGetToDatalog.ParserForGet;
 
 import com.google.appengine.api.memcache.MemcacheServiceFactory;
+
 import parserPutToDatalog.ParseException;
 import parserPutToDatalog.ParserForPut;
 import parserQueryToDatalog.ParserQueryToDatalog;
@@ -117,9 +119,10 @@ public class DatalutionDatastoreService {
 	public Entity get(Key key) throws EntityNotFoundException {
 
 		Entity goalEntity = null;
+		TransactionOptions options = TransactionOptions.Builder.withXG(true);
 		int retries = 3;
 		while (true) {
-			Transaction txn = ds.beginTransaction();
+			Transaction txn = ds.beginTransaction(options);
 			try {
 				String kind = key.getKind();
 				String id = key.getName();
