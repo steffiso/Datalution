@@ -26,7 +26,7 @@ import datastore.DatalutionDatastoreService;
 public class ComplexQuery {
 
 	private final LocalServiceTestHelper helper = new LocalServiceTestHelper(
-			new LocalDatastoreServiceTestConfig());
+			new LocalDatastoreServiceTestConfig().setDefaultHighRepJobPolicyUnappliedJobPercentage(100));
 
 	@Before
 	public void setUp() {

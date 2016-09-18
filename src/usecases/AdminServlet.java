@@ -1,4 +1,4 @@
-package datastore;
+package usecases;
 /**
  * This servlet provides the admin console for Datalution with Datastore.
  * Supported commands within the admin command line: 
@@ -15,6 +15,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import datastore.DatalutionDatastoreService;
 
 @SuppressWarnings("serial")
 public class AdminServlet extends HttpServlet {

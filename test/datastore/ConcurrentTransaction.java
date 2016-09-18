@@ -1,4 +1,4 @@
-package testTransaction;
+package datastore;
 
 import static org.junit.Assert.*;
 

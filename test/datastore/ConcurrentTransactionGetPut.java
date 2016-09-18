@@ -1,4 +1,4 @@
-package testTransaction;
+package datastore;
 
 import java.util.ConcurrentModificationException;
 
@@ -23,13 +23,17 @@ import org.junit.Test;
  * datastore
  *
  * für die Tests wurden nur die Operationen extrahiert die Aufrufe an Datastore
- * beinhalten: ein put im Datalution besteht aus den Datastore Operationen
+ * beinhalten:
+ * 
+ * ein put im Datalution besteht aus den Datastore Operationen
  * getLatestTimestamp(txn,...) und ds.put(txn,Entity), beide nacheinander in
  * einer Transaktion. getLatestTimestamp wurde für diese Tests weggelassen=> für
- * eine besssere Übersicht der elementaren Operationen. ein get im Datalution
- * besteht aus den Datastore Operationen getLatestEntity(txn,...) am Anfang,
- * einem oder weiteren getLatestEntity(txn,...) im Top Down Verfahren und
- * ds.put(null,Entity) am Ende.
+ * eine besssere Übersicht der elementaren Operationen.
+ * 
+ * ein get im Datalution besteht aus den Datastore Operationen
+ * getLatestEntity(txn,...) am Anfang, einem oder weiteren
+ * getLatestEntity(txn,...) im Top Down Verfahren und ds.put(null,Entity) am
+ * Ende.
  */
 
 public class ConcurrentTransactionGetPut {
@@ -56,7 +60,7 @@ public class ConcurrentTransactionGetPut {
 	 * immer eine ConcurrentModificationException bei commmit von txn2, egal ob
 	 * vor oder nach txn1
 	 */
-	@Test (expected = ConcurrentModificationException.class)
+	@Test(expected = ConcurrentModificationException.class)
 	public void testConcurrentGetPut1() throws EntityNotFoundException {
 		DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
 		Key parent = KeyFactory.createKey("Player", 1);
@@ -78,14 +82,13 @@ public class ConcurrentTransactionGetPut {
 		Transaction txn2 = ds.beginTransaction();
 
 		// if no entity found for get command - start lazy migration
-		Entity latestEntity = dds.getLatestEntity(txn, "Player2", 1);
-		System.out.println(latestEntity);
+		dds.getLatestEntity(txn, "Player2", 1);
 
 		// put of put command
 		ds.put(txn2, entityOfPutCommand);
 
 		// search Entity in lazy migration
-		latestEntity = dds.getLatestEntity(txn, "Player2", 1);
+		dds.getLatestEntity(txn, "Player2", 1);
 
 		// ds.put of lazy migration
 		ds.put(null, entityOfLazyPut);
@@ -123,14 +126,13 @@ public class ConcurrentTransactionGetPut {
 
 		Transaction txn = ds.beginTransaction();
 		Transaction txn2 = ds.beginTransaction();
-		
+
 		// search Entity in lazy migration
-		Entity latestEntity = dds.getLatestEntity(txn, "Player2", 1);
-		System.out.println(latestEntity);
-		
+		dds.getLatestEntity(txn, "Player2", 1);
+
 		// ds.put of lazy migration
 		ds.put(null, entityOfLazyPut);
-		
+
 		// put of put command
 		ds.put(txn2, entityOfPutCommand);
 
@@ -167,24 +169,22 @@ public class ConcurrentTransactionGetPut {
 		Transaction txn = ds.beginTransaction();
 		Transaction txn2 = ds.beginTransaction();
 		// if no entity found for get command - start lazy migration
-		Entity latestEntity = dds.getLatestEntity(txn, "Player2", 1);
-		
+		dds.getLatestEntity(txn, "Player2", 1);
+
 		// put of put command
 		ds.put(txn2, entityOfPutCommand);
 
 		txn2.commit(); // erfolgreich
-		
+
 		// search Entity in lazy migration => old value
-		latestEntity = dds.getLatestEntity(txn, "Player2", 1);
-		System.out.println(latestEntity);
-		
+		dds.getLatestEntity(txn, "Player2", 1);
+
 		// search Entity out of transaction => new value
-		latestEntity = dds.getLatestEntity(null, "Player2", 1);
-		System.out.println(latestEntity);
-		
+		dds.getLatestEntity(null, "Player2", 1);
+
 		// ds.put of lazy migration
 		ds.put(null, entityOfLazyPut);
-		
+
 		// obwohl alten Wert gelesen erfolgreich! Transaktion verhindert nicht,
 		// dass der alte Wert ausgegeben wird!
 		txn.commit();

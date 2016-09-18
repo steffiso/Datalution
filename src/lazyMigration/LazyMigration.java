@@ -13,6 +13,7 @@ import parserPutToDatalog.ParseException;
 import datalog.Fact;
 import datalog.Predicate;
 import datalog.Rule;
+import datastore.TopDownExecution;
 
 /**
  * this class provides method for migrating entities lazily/topdown based on

@@ -428,7 +428,7 @@ public class DatalutionDatastoreService {
 	 * @param id
 	 * @return latest entity of specific kind with specific id
 	 */
-	public Entity getLatestEntity(Transaction txn, String kind, int id)
+	protected Entity getLatestEntity(Transaction txn, String kind, int id)
 			throws EntityNotFoundException {
 		Schema schema = null;
 		int version = 0;
@@ -464,7 +464,7 @@ public class DatalutionDatastoreService {
 	 * @param id
 	 * @return highest timestamp for specific kind and id
 	 */
-	public int getLatestTimestamp(Transaction txn, String kind, int id) {
+	protected int getLatestTimestamp(Transaction txn, String kind, int id) {
 		int ts = 0;
 
 		Key parentKey = KeyFactory.createKey(
@@ -488,7 +488,7 @@ public class DatalutionDatastoreService {
 	 * @param datalogFact
 	 *            , e.g. "Player2(4,'Lisa',40)"
 	 */
-	public void putToDatabase(String datalogFact)
+	protected void putToDatabase(String datalogFact)
 			throws InputMismatchException, ParseException,
 			EntityNotFoundException {
 

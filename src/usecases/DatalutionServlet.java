@@ -1,4 +1,4 @@
-package datastore;
+package usecases;
 
 import java.io.IOException;
 import java.io.StringReader;

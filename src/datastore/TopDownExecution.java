@@ -1,4 +1,4 @@
-package lazyMigration;
+package datastore;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -8,12 +8,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import lazyMigration.RuleGoalTree;
+
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.Transaction;
 
 import parserPutToDatalog.ParseException;
-import datastore.DatalutionDatastoreService;
 import datalog.Condition;
 import datalog.Fact;
 import datalog.MagicCondition;
