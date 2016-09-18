@@ -16,15 +16,20 @@ import datalog.Rule;
 import datastore.TopDownExecution;
 
 /**
- * this class provides method for migrating entities lazily/topdown based on
- * datalog rules
+ * This class provides method for migrating entities lazily/topdown based on
+ * datalog rules.
  */
 
 public class LazyMigration {
+	/** the datalog facts*/
 	private ArrayList<Fact> facts;
+	/** all datalog rules */
 	private ArrayList<Rule> rules;
+	/** the top goal for the topdown execution */
 	private Predicate goal;
+	/** this map stores attributes and their values for unification */
 	private Map<String, String> unificationMap;
+	/** defined transaction for datastore operations */
 	private Transaction txn;
 
 	public LazyMigration(Transaction txn, ArrayList<Rule> rules,

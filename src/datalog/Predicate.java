@@ -3,8 +3,9 @@ package datalog;
 import java.util.ArrayList;
 
 /**
- * A class for representing datalog predicates a datalog rule consists of
- * several predicates Explanation of predicate based on this example: A(?x,?y)
+ * This is a class for representing datalog predicates. <br>
+ * A datalog rule consists of several predicates. <br>
+ * The explanation of predicate is based on this example: A(?x,?y).
  */
 
 public class Predicate {

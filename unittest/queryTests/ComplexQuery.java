@@ -20,7 +20,7 @@ import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
 import datastore.DatalutionDatastoreService;
 
 /**
- * A unit test for a sequence of commands (like adding, copying...)
+ * This is a unit test for a sequence of commands (like adding, copying...).
  */
 
 public class ComplexQuery {

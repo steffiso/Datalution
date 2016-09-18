@@ -1,10 +1,9 @@
 datalog
 datastore
 lazyMigration
-parserEDBFactToJava
 parserGetToDatalog
 parserPutToDatalog
-parserQueryToDatalogToJava
+parserQueryToDatalog
 parserRuletoJava
 queryTests
-testTransaction
+usecases

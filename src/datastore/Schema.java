@@ -1,9 +1,10 @@
 package datastore;
-/**
- * Java class for schema entities from Datastore
- */
 import java.util.ArrayList;
 import java.util.Arrays;
+
+/**
+ * This class stores schema entities from Datastore.
+ */
 
 public class Schema {
 	

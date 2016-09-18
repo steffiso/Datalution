@@ -41,8 +41,8 @@ import parserRuletoJava.ParserRuleToJava;
 
 /**
  * This class provides the methods to interact with Google Datastore. It can be
- * used similar to the DatastoreService with core methods put(Entity e) and
- * get(String kind, int id)
+ * used similar to the DatastoreService with core methods put(Entity entity) and
+ * get(Key key).
  */
 public class DatalutionDatastoreService {
 
@@ -110,10 +110,8 @@ public class DatalutionDatastoreService {
 	 * Get an entity from Datastore with current kind and id (lazy migration
 	 * with Datalog will be started if necessary)
 	 * 
-	 * @param kind
-	 *            Kind of needed entity (e.g. Player)
-	 * @param id
-	 *            Id of needed entity (e.g. 1)
+	 * @param key             
+	 *            Key of needed entity (e.g. Player)
 	 * @return latest entity (even after lazy migration)
 	 */
 	public Entity get(Key key) throws EntityNotFoundException {

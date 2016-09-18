@@ -6,8 +6,8 @@ import datalog.Predicate;
 import datalog.Rule;
 
 /**
- * a rule goal tree with a top goal and subgoals/children goals, each top down
- * execution has a rule goal tree as a staring point
+ * This class represents a rule goal tree with a top goal and subgoals/children
+ * goals: each top down execution has a rule goal tree as a starting point.
  */
 
 public class RuleGoalTree {

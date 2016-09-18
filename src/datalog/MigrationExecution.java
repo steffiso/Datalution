@@ -8,8 +8,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * superclass for TopDownExecution with similar methods for both migration
- * approaches: bottom up (not implemented yet!) or top down
+ * This is a superclass for TopDownExecution with similar methods for both
+ * migration approaches: bottom up (not implemented yet!) or top down.
  * 
  * @author Stephanie Sombach and Katharina Wiech
  */
@@ -22,13 +22,13 @@ public class MigrationExecution {
 	protected ArrayList<Rule> rules;
 	/**
 	 * map which holds information of renamed variables based on magic
-	 * conditions, especially needed for datastore queries
-	 * because we need original names of properties
+	 * conditions, especially needed for datastore queries because we need
+	 * original names of properties
 	 */
 	protected Map<String, String[]> mapForRenamedVariables;
 
 	/**
-	 * constuctor: set edb facts, rules
+	 * Constructor: set edb facts, rules
 	 * 
 	 * @param facts
 	 *            edb facts
@@ -139,7 +139,8 @@ public class MigrationExecution {
 	 *            one condition for selection
 	 * @return predicate after one selection
 	 */
-	protected Predicate getTempCondResult(Predicate predicate, Condition condition) {
+	protected Predicate getTempCondResult(Predicate predicate,
+			Condition condition) {
 		ArrayList<ArrayList<String>> facts = new ArrayList<ArrayList<String>>();
 		String rightOperand = condition.getRightOperand();
 		String leftOperand = condition.getLeftOperand();
@@ -150,8 +151,8 @@ public class MigrationExecution {
 			String right = "";
 			if (leftOperand.startsWith("?"))
 				if (predicate.getScheme().contains(leftOperand))
-					left = factOfFactList.get(predicate.getScheme()
-							.indexOf(leftOperand));
+					left = factOfFactList.get(predicate.getScheme().indexOf(
+							leftOperand));
 				else {
 					facts.add(factOfFactList);
 					continue;
@@ -207,7 +208,8 @@ public class MigrationExecution {
 				facts.add(factOfFactList);
 			}
 		}
-		return new Predicate("temp", predicate.getScheme().size(), predicate.getScheme(), facts);
+		return new Predicate("temp", predicate.getScheme().size(),
+				predicate.getScheme(), facts);
 
 	}
 
@@ -221,8 +223,8 @@ public class MigrationExecution {
 	 *            variables of right Predicate
 	 * @return list of positions of equal variables in both predicates
 	 */
-	protected ArrayList<PairofInteger> getEqualList(ArrayList<String> leftList,
-			ArrayList<String> rightList) {
+	protected ArrayList<PairofInteger> getListOfEqualVariables(
+			ArrayList<String> leftList, ArrayList<String> rightList) {
 		ArrayList<PairofInteger> list = new ArrayList<PairofInteger>();
 		for (int i = 0; i < leftList.size(); i++)
 			for (int j = 0; j < rightList.size(); j++)

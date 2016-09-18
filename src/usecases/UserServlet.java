@@ -19,13 +19,13 @@ import datastore.DatalutionDatastoreService;
 import datastore.Schema;
 import parserGetToDatalog.ParserForGet;
 /**
- * This servlet provides the user console for Datalution with Datastore.
+ * This servlet provides the user console for CloudDatalution with Datastore.
  * Supported commands (with a brief example): 
  * - get (e.g. "get Player.id=1")
  * - put (e.g. "put Player(1,"Lisa S.",200)")
  */
 @SuppressWarnings("serial")
-public class DatalutionServlet extends HttpServlet {
+public class UserServlet extends HttpServlet {
 	
 	private int userId;
 	private String kind;

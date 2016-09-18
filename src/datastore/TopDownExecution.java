@@ -25,7 +25,7 @@ import datalog.Rule;
 import datalog.RuleBody;
 
 /**
- * This class executes datalog rules in a top down approach it is derived of 
+ * This class executes datalog rules in a top down approach it is derived of
  * MigrationExecution class
  * 
  * @author Stephanie Sombach and Katharina Wiech
@@ -41,17 +41,18 @@ public class TopDownExecution extends MigrationExecution {
 	private Map<String, String> unificationMap;
 	/** facts that will be written to database */
 	private ArrayList<Fact> putFacts;
-	/** contains all information for magic sets  */
+	/** contains all information for magic sets */
 	private List<MagicCondition> magicList = null;
-
 	/** Datastore wrapper for commands to the datastore */
 	private DatalutionDatastoreService db = new DatalutionDatastoreService();
+	/** defined transaction for datastore operations */
 	private Transaction txn;
 
 	/**
-	 * constuctor: set edb facts, rules, goal and unificationMap
-	 * @param txn 
+	 * Constructor: set edb facts, rules, goal and unificationMap
 	 * 
+	 * @param txn
+	 *            transaction for datastore operations
 	 * @param facts
 	 *            edb facts
 	 * @param rules
@@ -61,10 +62,11 @@ public class TopDownExecution extends MigrationExecution {
 	 * @param unificationMap
 	 *            stores information for unification
 	 */
-	public TopDownExecution(Transaction txn, ArrayList<Fact> facts, ArrayList<Rule> rules,
-			Predicate goal, Map<String, String> unificationMap) {
+	public TopDownExecution(Transaction txn, ArrayList<Fact> facts,
+			ArrayList<Rule> rules, Predicate goal,
+			Map<String, String> unificationMap) {
 		super(facts, rules);
-		this.txn=txn;
+		this.txn = txn;
 		this.goal = goal;
 		this.unificationMap = unificationMap;
 	}
@@ -197,7 +199,7 @@ public class TopDownExecution extends MigrationExecution {
 	}
 
 	/**
-	 * this method checks whether a fact exists in the facts list 
+	 * this method checks whether a fact exists in the facts list
 	 * 
 	 * @param factList
 	 *            facts list
@@ -218,7 +220,7 @@ public class TopDownExecution extends MigrationExecution {
 	 * head Example A(?x):-B(?x,?y)--> only extract the ?x variable of B
 	 * 
 	 * @param results
-	 *            all results of rule body stored in a temp Predicate 
+	 *            all results of rule body stored in a temp Predicate
 	 * @param scheme
 	 *            scheme of rule head
 	 * @return a list of results stored in a list of strings
@@ -254,11 +256,11 @@ public class TopDownExecution extends MigrationExecution {
 	}
 
 	/**
-	 * unificate all variables which are in the unificationMap
+	 * unify all variables which are in the unificationMap
 	 * 
 	 * @param childrenRule
-	 *            rule that has to be unificated
-	 * @return unificated rule
+	 *            rule that has to be unified
+	 * @return unified rule
 	 * @see datalog.Predicate
 	 * @see datalog.Rule
 	 */
@@ -274,30 +276,30 @@ public class TopDownExecution extends MigrationExecution {
 		if (head.getKind().replaceAll("\\d", "").equals(kind)) {
 			ArrayList<String> schemeRuleHead = head.getScheme();
 			String idValue = schemeRuleHead.get(positionValue);
-			// unificate head-predicates which match with kind
-			unificatePredicate(schemeRuleHead, idValue, unificationValue);
+			// unify head-predicates which match with kind
+			unifyPredicate(schemeRuleHead, idValue, unificationValue);
 
 		}
-		// unificate body-predicates which match with kind
+		// unify body-predicates which match with kind
 		String valueOfIdVariable = null;
 		for (Predicate predicate : body.getPredicates()) {
 			if (predicate.getKind().replaceAll("\\d", "").equals(kind)) {
 				ArrayList<String> schemePredicate = predicate.getScheme();
 				valueOfIdVariable = schemePredicate.get(positionValue);
-				unificatePredicate(schemePredicate, valueOfIdVariable,
+				unifyPredicate(schemePredicate, valueOfIdVariable,
 						unificationValue);
 			}
 		}
 		if (valueOfIdVariable != null) {
 			if (!head.getKind().replaceAll("\\d", "").equals(kind)) {
-				// unificate head-predicates which don't match with kind
-				unificatePredicate(head.getScheme(), valueOfIdVariable,
+				// unify head-predicates which don't match with kind
+				unifyPredicate(head.getScheme(), valueOfIdVariable,
 						unificationValue);
 			}
-			// unificate body-predicates which don't match with kind
+			// unify body-predicates which don't match with kind
 			for (Predicate predicate : body.getPredicates()) {
 				if (!predicate.getKind().replaceAll("\\d", "").equals(kind)) {
-					unificatePredicate(predicate.getScheme(),
+					unifyPredicate(predicate.getScheme(),
 							valueOfIdVariable, unificationValue);
 				}
 			}
@@ -308,7 +310,7 @@ public class TopDownExecution extends MigrationExecution {
 
 	/**
 	 * unification scheme of Predicate: e.g. A(?x,?y) and method call example:
-	 * unificatePredicate(["?x","?y"],"?x","1") --> A(1,?y)
+	 * unifyPredicate(["?x","?y"],"?x","1") --> A(1,?y)
 	 * 
 	 * @param scheme
 	 *            scheme to be unified
@@ -317,7 +319,7 @@ public class TopDownExecution extends MigrationExecution {
 	 * @param unificationValue
 	 *            change value
 	 */
-	private void unificatePredicate(ArrayList<String> scheme,
+	private void unifyPredicate(ArrayList<String> scheme,
 			String valueOfIdVariable, String unificationValue) {
 		if (scheme.contains(valueOfIdVariable)) {
 			scheme.set(scheme.indexOf(valueOfIdVariable), unificationValue);
@@ -327,11 +329,10 @@ public class TopDownExecution extends MigrationExecution {
 
 	/**
 	 * -rename rules and delete Conditions with two variables, e.g., ?x=?y"
-	 * -generate Magic Conditions based on these Conditions 
+	 * -generate Magic Conditions based on these Conditions
 	 * 
-	 *  this method is, inter alia, important for not
-	 * operations, e.g. "A(?x),not B(?y), ?x=?y" will be changed to -->
-	 * "A(?y),not B(?y)"
+	 * this method is, inter alia, important for not operations, e.g.
+	 * "A(?x),not B(?y), ?x=?y" will be changed to --> "A(?y),not B(?y)"
 	 * 
 	 * @param rule
 	 *            rule that will be renamed
@@ -395,7 +396,7 @@ public class TopDownExecution extends MigrationExecution {
 					// join every following predicate step by step
 					for (int i = 1; i < predicates.size(); i++) {
 						Predicate nextPredicate = predicates.get(i);
-						ArrayList<PairofInteger> equalList = getEqualList(
+						ArrayList<PairofInteger> equalList = getListOfEqualVariables(
 								tempPredicate.getScheme(),
 								nextPredicate.getScheme());
 						ArrayList<ArrayList<String>> restemp = new ArrayList<ArrayList<String>>();
@@ -576,23 +577,23 @@ public class TopDownExecution extends MigrationExecution {
 				String id = predicate.getScheme().get(0);
 				Entity resultEntity = null;
 				if (getLatest) {
-					resultEntity = db.getLatestEntity(txn,kind,
+					resultEntity = db.getLatestEntity(txn, kind,
 							Integer.parseInt(id));
 				}
 				if (resultEntity != null) {
-		
-						found = true;
 
-						// get values of entity based on predicate scheme
-						ArrayList<String> valueNew = getValuesOfEntity(
-								resultEntity, predicate.getScheme(),
-								predicate.getKind());
+					found = true;
 
-						Fact v = new Fact(kind, valueNew);
-						if (!factExists(facts, v))
-							facts.add(v);
-						values.add(valueNew);
-		
+					// get values of entity based on predicate scheme
+					ArrayList<String> valueNew = getValuesOfEntity(
+							resultEntity, predicate.getScheme(),
+							predicate.getKind());
+
+					Fact v = new Fact(kind, valueNew);
+					if (!factExists(facts, v))
+						facts.add(v);
+					values.add(valueNew);
+
 				}
 			}
 		// set results to predicate
@@ -664,7 +665,7 @@ public class TopDownExecution extends MigrationExecution {
 		if (magicList != null && !magicList.isEmpty()) {
 			// check if a magic condition exists for this kind
 			for (MagicCondition magicCondition : magicList) {
-				if (magicCondition.getLeft().getKind().equals(kind)) {
+				if (magicCondition.getHeadPair().getKind().equals(kind)) {
 					if (magicCondition.hasAlreadyResults() == false) {
 						// found a magic condition and also found the result/id
 						// for this for magic set <=> Magic Set ID!
@@ -674,7 +675,7 @@ public class TopDownExecution extends MigrationExecution {
 						setNewMagicIdToCorrespondingRules(
 								magicCondition,
 								values.get(0).get(
-										magicCondition.getLeft()
+										magicCondition.getHeadPair()
 												.getPositionId()));
 					}
 
@@ -697,7 +698,8 @@ public class TopDownExecution extends MigrationExecution {
 	private void setNewMagicIdToCorrespondingRules(MagicCondition mCondition,
 			String idValue) {
 		for (Rule rule : rules) {
-			for (PairForMagicCondition pairForMCond : mCondition.getRight()) {
+			for (PairForMagicCondition pairForMCond : mCondition
+					.getListOfSubPairs()) {
 				if (rule.getHead().getKind().equals(pairForMCond.getKind())) {
 					rule.getHead().getScheme()
 							.set(pairForMCond.getPositionId(), idValue);
@@ -713,7 +715,8 @@ public class TopDownExecution extends MigrationExecution {
 	}
 
 	/**
-	 * if a condition for a magic set exists--> generate new MagicCondition with all rules which need this magic set
+	 * if a condition for a magic set exists--> generate new MagicCondition with
+	 * all rules which need this magic set
 	 * 
 	 * @param predicates
 	 *            predicates that will be identified for magicSet
@@ -742,7 +745,7 @@ public class TopDownExecution extends MigrationExecution {
 					if (!magicList.isEmpty()) {
 
 						for (int x = 0; x < magicList.size(); x++)
-							if (magicList.get(x).getLeft().equals(leftPair)) {
+							if (magicList.get(x).getHeadPair().equals(leftPair)) {
 								found = true;
 								position = x;
 							}
@@ -751,7 +754,7 @@ public class TopDownExecution extends MigrationExecution {
 					if (found) {
 						mCondition = magicList.get(position);
 						if (!mCondition.contains(rightPair)) {
-							mCondition.getRight().add(rightPair);
+							mCondition.getListOfSubPairs().add(rightPair);
 						}
 					} else {
 						mCondition = new MagicCondition(leftPair, rightPair);
@@ -793,7 +796,7 @@ public class TopDownExecution extends MigrationExecution {
 						PairForMagicCondition rightPair = new PairForMagicCondition(
 								predicate.getKind(), schema.indexOf(id));
 						if (!mCondition.contains(rightPair)) {
-							mCondition.getRight().add(rightPair);
+							mCondition.getListOfSubPairs().add(rightPair);
 							generateSubMagicCondition(mCondition,
 									predicate.getKind(), schema.indexOf(id),
 									schema.size());

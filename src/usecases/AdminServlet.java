@@ -1,6 +1,6 @@
 package usecases;
 /**
- * This servlet provides the admin console for Datalution with Datastore.
+ * This servlet provides the admin console for CloudDatalution with Datastore.
  * Supported commands within the admin command line: 
  * - add (e.g. "add Player.points=100")
  * - delete (e.g. "delete Player.points")

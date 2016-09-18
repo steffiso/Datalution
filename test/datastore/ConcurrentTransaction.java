@@ -22,7 +22,7 @@ import com.google.appengine.api.datastore.Key;
 import datastore.DatalutionDatastoreService;
 
 /**
- * A unit test class for migrating entities in datastore with multiple users
+ * This is s unit test class for migrating entities in datastore with multiple users.
  */
 
 public class ConcurrentTransaction {

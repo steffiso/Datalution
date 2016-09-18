@@ -5,8 +5,8 @@ import java.util.ArrayList;
 /**
  * This class stores all information of datalog edb and idb facts - edb facts
  * are values which are stored in the database and known at the beginning - idb
- * facts are derived values from datalog rules for example, one fact will be
- * represented as follows: A(1,2)
+ * facts are derived values from datalog rules. For example: one fact could be
+ * represented as follows: A(1,2).
  */
 
 public class Fact {

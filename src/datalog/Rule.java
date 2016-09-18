@@ -3,8 +3,9 @@ package datalog;
 import java.util.ArrayList;
 
 /**
- * A class for representing a datalog rule Explanation of Rule based on this
- * example: C(?y):- A(?x,?y),B(?z,?y),?y=2
+ * This is a class for representing a datalog rule. <br>
+ * The Explanation of Rule is based on this example: <br>
+ * C(?y):- A(?x,?y),B(?z,?y),?y=2.
  */
 
 public class Rule {

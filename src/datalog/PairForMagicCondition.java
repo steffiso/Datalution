@@ -1,8 +1,9 @@
 package datalog;
 
 /**
- * this class stores kind and positon values based on Magic Condition
+ * This class stores kind and position values based on Magic Condition.
  */
+
 public class PairForMagicCondition {
 	private String kind;
 	private int positionId;

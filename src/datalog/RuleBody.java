@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 /**
  * This class represents the rule body of a datalog rule, a rule body consists
- * of several predicates and their conditions @see Rule
+ * of several predicates and their conditions.
  */
 
 public class RuleBody {

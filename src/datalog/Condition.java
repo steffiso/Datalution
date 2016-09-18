@@ -1,9 +1,9 @@
 package datalog;
 
 /**
- * This class stores all information on conditions of a datalog rule @see Rule a
- * condition consists of two operands (either a variable or a constant) and an
- * operator (=,<,>...) for example: "?x" "=" "1"
+ * This class stores all information on conditions of a datalog rule. <br>
+ * A condition consists of two operands (either a variable or a constant) and an
+ * operator (=,<,>...), for example: "?x" "=" "1".
  */
 
 public class Condition {
