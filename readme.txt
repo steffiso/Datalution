@@ -1,11 +1,11 @@
-"Datalution - A Datalog-based Tool for Schema Evolution in NoSQL Databases", Version 2.0, 09/05/2016
+"CloudDatalution - A Datalog-based Tool for Schema Evolution in NoSQL Databases", Version 2.0, 09/21/2016
 ====================================================================================================
 
 GENERAL USAGE NOTES
 ----------------------------------------------------------------------------------------------------
-- Datalution is a tool for migrating schema changes to NoSQL databases lazily with Googles
+- CloudDatalution is a tool for migrating schema changes to NoSQL databases lazily with Googles
   Datastore as a NoSQL database backend
-- In the background Datalution uses Datalog rules to make lazy migration for operations
+- In the background CloudDatalution uses Datalog rules to make lazy migration for operations
   like adding, deleting, copying and moving entities complete and efficient
 
 - Datalution is based on the theoretical background of following paper:
@@ -14,7 +14,8 @@ GENERAL USAGE NOTES
 
 GETTING STARTED
 ----------------------------------------------------------------------------------------------------
-- To use this tool, two different sights are provided:
+- To demonstrate one use case of this tool, the project "CloudDatalutionUseCase" provides 
+	two different sights:
 	- User- Console (/user): to get and put entities
 	- Admin- Console (/admin): to make schema changes or add new entity types
 - Supported commands have the following syntax: e.g.
@@ -42,7 +43,7 @@ BACKGROUND INFORMATION
 	   Or add attributes to your new entity in the admin console: 
 		e.g. "add Job.name="defaultName""
  
- - For Datalution the strong consistency properties of Entity groups is used 
+ - For CloudDatalution the strong consistency properties of Entity groups is used 
    (more information about strong consistency in Datastore is provided in the docu:
    https://cloud.google.com/appengine/docs/java/datastore/structuring_for_strong_consistency)
  - To guarantee that the schema evolution steps provide strong consistency, each entity
@@ -53,4 +54,4 @@ CONTACT
 -------------------------------------------------------------------------------------
 Katharina Wiech, katharina1.wiech@st.oth-regensburg.de
 
-Stephanie Sombach, stephanie.sombach@st.oth-regensburg.de
+Stephanie Sombach, steffi.sombach@t-online.de
