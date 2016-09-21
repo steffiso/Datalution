@@ -7,13 +7,11 @@ import java.util.InputMismatchException;
 import java.util.Map;
 
 import com.google.appengine.api.datastore.EntityNotFoundException;
-import com.google.appengine.api.datastore.Transaction;
 
 import parserPutToDatalog.ParseException;
 import datalog.Fact;
 import datalog.Predicate;
 import datalog.Rule;
-import datastore.TopDownExecution;
 
 /**
  * This class provides method for migrating entities lazily/topdown based on
@@ -29,12 +27,9 @@ public class LazyMigration {
 	private Predicate goal;
 	/** this map stores attributes and their values for unification */
 	private Map<String, String> unificationMap;
-	/** defined transaction for datastore operations */
-	private Transaction txn;
 
-	public LazyMigration(Transaction txn, ArrayList<Rule> rules,
+	public LazyMigration(ArrayList<Rule> rules,
 			Predicate goal, Map<String, String> unificationMap) {
-		this.txn=txn;
 		this.facts = new ArrayList<Fact>();
 		this.rules = rules;
 		this.goal = goal;
@@ -45,7 +40,7 @@ public class LazyMigration {
 			IOException, URISyntaxException, InputMismatchException,
 			EntityNotFoundException {
 
-		TopDownExecution lazy = new TopDownExecution(txn,facts, rules, goal,
+		TopDownExecution lazy = new TopDownExecution(facts, rules, goal,
 				unificationMap);
 		ArrayList<Fact> getAnswers = lazy.getAnswers();
 		if (getAnswers.size() == 1) {

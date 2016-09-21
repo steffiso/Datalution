@@ -16,7 +16,7 @@ GETTING STARTED
 ----------------------------------------------------------------------------------------------------
 - To use this tool, two different sights are provided:
 	- User- Console (/user): to get and put entities
-	- Admin- Console (/admin): to make schema changes or add new entitiy types
+	- Admin- Console (/admin): to make schema changes or add new entity types
 - Supported commands have the following syntax: e.g.
 	1. In the user console:
 	- get Player.id=1
@@ -27,6 +27,7 @@ GETTING STARTED
 	- copy Player.score to Mission where Player.id=Mission.pid
 	- move Player.score to Mission where Player.id=Mission.pid
 	- new Job 
+	- start (leads to an sample dataset in Datastore of three Player and three Mission entities)
 - Additional informations/ limitations:
 	- the tool only accepts attribute "id" for get commands
 	- commands for a kind that doesn't exist will be ignored 

@@ -1,4 +1,4 @@
-package datastore;
+package lazyMigration;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -8,11 +8,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import lazyMigration.RuleGoalTree;
-
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
-import com.google.appengine.api.datastore.Transaction;
 
 import parserPutToDatalog.ParseException;
 import datalog.Condition;
@@ -23,6 +20,7 @@ import datalog.PairForMagicCondition;
 import datalog.Predicate;
 import datalog.Rule;
 import datalog.RuleBody;
+import datastore.DatalutionDatastoreService;
 
 /**
  * This class executes datalog rules in a top down approach it is derived of
@@ -45,8 +43,6 @@ public class TopDownExecution extends MigrationExecution {
 	private List<MagicCondition> magicList = null;
 	/** Datastore wrapper for commands to the datastore */
 	private DatalutionDatastoreService db = new DatalutionDatastoreService();
-	/** defined transaction for datastore operations */
-	private Transaction txn;
 
 	/**
 	 * Constructor: set edb facts, rules, goal and unificationMap
@@ -62,11 +58,10 @@ public class TopDownExecution extends MigrationExecution {
 	 * @param unificationMap
 	 *            stores information for unification
 	 */
-	public TopDownExecution(Transaction txn, ArrayList<Fact> facts,
+	public TopDownExecution(ArrayList<Fact> facts,
 			ArrayList<Rule> rules, Predicate goal,
 			Map<String, String> unificationMap) {
 		super(facts, rules);
-		this.txn = txn;
 		this.goal = goal;
 		this.unificationMap = unificationMap;
 	}
@@ -577,7 +572,7 @@ public class TopDownExecution extends MigrationExecution {
 				String id = predicate.getScheme().get(0);
 				Entity resultEntity = null;
 				if (getLatest) {
-					resultEntity = db.getLatestEntity(txn, kind,
+					resultEntity = db.getLatestEntity(kind,
 							Integer.parseInt(id));
 				}
 				if (resultEntity != null) {

@@ -101,7 +101,7 @@ public class ConcurrentTransaction {
 				txn2.rollback();
 			}
 
-			Entity latestEntity = dds.getLatestEntity(null,"Player1", 1);
+			Entity latestEntity = dds.getLatestEntity("Player1", 1);
 			assertEquals("Lisa1", latestEntity.getProperty("name"));
 
 			// after that you could retry txn2, see testSinglePut
@@ -130,7 +130,7 @@ public class ConcurrentTransaction {
 			e.setProperty("ts", ts);
 			ds.put(txn, e);
 			txn.commit();
-			Entity latestEntity = dds.getLatestEntity(null,"Player1", 1);
+			Entity latestEntity = dds.getLatestEntity("Player1", 1);
 			assertEquals("Lisa2", latestEntity.getProperty("name"));
 	}
 	
@@ -152,7 +152,7 @@ public class ConcurrentTransaction {
 		e1.setProperty("id", 1);
 		dds.put(e1);
 		txn.commit();
-		Entity latestEntity = dds.getLatestEntity(null,"Player1", 1);
+		Entity latestEntity = dds.getLatestEntity("Player1", 1);
 		assertEquals("Lisa1", latestEntity.getProperty("name"));
 	}
 }

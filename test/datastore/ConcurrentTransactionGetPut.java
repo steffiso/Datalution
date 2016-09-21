@@ -82,13 +82,13 @@ public class ConcurrentTransactionGetPut {
 		Transaction txn2 = ds.beginTransaction();
 
 		// if no entity found for get command - start lazy migration
-		dds.getLatestEntity(txn, "Player2", 1);
+		dds.getLatestEntity("Player2", 1);
 
 		// put of put command
 		ds.put(txn2, entityOfPutCommand);
 
 		// search Entity in lazy migration
-		dds.getLatestEntity(txn, "Player2", 1);
+		dds.getLatestEntity("Player2", 1);
 
 		// ds.put of lazy migration
 		ds.put(null, entityOfLazyPut);
@@ -128,7 +128,7 @@ public class ConcurrentTransactionGetPut {
 		Transaction txn2 = ds.beginTransaction();
 
 		// search Entity in lazy migration
-		dds.getLatestEntity(txn, "Player2", 1);
+		dds.getLatestEntity("Player2", 1);
 
 		// ds.put of lazy migration
 		ds.put(null, entityOfLazyPut);
@@ -169,7 +169,7 @@ public class ConcurrentTransactionGetPut {
 		Transaction txn = ds.beginTransaction();
 		Transaction txn2 = ds.beginTransaction();
 		// if no entity found for get command - start lazy migration
-		dds.getLatestEntity(txn, "Player2", 1);
+		dds.getLatestEntity("Player2", 1);
 
 		// put of put command
 		ds.put(txn2, entityOfPutCommand);
@@ -177,10 +177,10 @@ public class ConcurrentTransactionGetPut {
 		txn2.commit(); // erfolgreich
 
 		// search Entity in lazy migration => old value
-		dds.getLatestEntity(txn, "Player2", 1);
+		dds.getLatestEntity("Player2", 1);
 
 		// search Entity out of transaction => new value
-		dds.getLatestEntity(null, "Player2", 1);
+		dds.getLatestEntity("Player2", 1);
 
 		// ds.put of lazy migration
 		ds.put(null, entityOfLazyPut);
