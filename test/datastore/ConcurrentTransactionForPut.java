@@ -22,10 +22,10 @@ import com.google.appengine.api.datastore.Key;
 import datastore.DatalutionDatastoreService;
 
 /**
- * This is s unit test class for migrating entities in datastore with multiple users.
+ * This is s unit test class for testing concurrent put commands in CloudDatalution.
  */
 
-public class ConcurrentTransaction {
+public class ConcurrentTransactionForPut {
 
 	private final LocalServiceTestHelper helper = new LocalServiceTestHelper(
 			new LocalDatastoreServiceTestConfig());

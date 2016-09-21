@@ -191,7 +191,7 @@ public class DatalutionDatastoreService {
 	 *            Id of needed entity (e.g. 1)
 	 * @return list of unification maps
 	 */
-	private static Map<String, String> prepareUniMapForLazyMigration(String kind,
+	protected static Map<String, String> prepareUniMapForLazyMigration(String kind,
 			String id) {
 		Map<String, String> uniMap = new TreeMap<String, String>();
 		uniMap.put("kind", kind);
@@ -210,7 +210,7 @@ public class DatalutionDatastoreService {
 	 *            Id of needed entity (e.g. 1)
 	 * @return list of Datalog rules
 	 */
-	private ArrayList<Rule> prepareRulesForLazyMigration(String kind, String id)
+	protected ArrayList<Rule> prepareRulesForLazyMigration(String kind, String id)
 			throws parserRuletoJava.ParseException, InputMismatchException,
 			parserGetToDatalog.ParseException, IOException,
 			EntityNotFoundException {
@@ -436,7 +436,7 @@ public class DatalutionDatastoreService {
 	 * @param id
 	 * @return highest timestamp for specific kind and id
 	 */
-	public int getLatestTimestamp(Transaction txn, String kind, int id) {
+	protected int getLatestTimestamp(Transaction txn, String kind, int id) {
 		int ts = 0;
 		
 		Key parentKey = KeyFactory.createKey(kind.replaceAll(MATCH_NUMBERS, EMPTY_STRING), id);

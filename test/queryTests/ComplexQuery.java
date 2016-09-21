@@ -26,7 +26,7 @@ import datastore.DatalutionDatastoreService;
 public class ComplexQuery {
 
 	private final LocalServiceTestHelper helper = new LocalServiceTestHelper(
-			new LocalDatastoreServiceTestConfig().setDefaultHighRepJobPolicyUnappliedJobPercentage(100));
+			new LocalDatastoreServiceTestConfig());
 
 	@Before
 	public void setUp() {
@@ -70,19 +70,24 @@ public class ComplexQuery {
 		try {
 			Key keyPlayer = KeyFactory.createKey("Player", "1");
 			userPlayer = dds.get(keyPlayer);
-			assertEquals("{score=100, ts=0, id=1, points=150}", userPlayer
-					.getProperties().toString());
+			assertEquals("100", userPlayer
+					.getProperty("score"));
+			assertNull(userPlayer
+					.getProperty("name"));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 
 		Entity userMission;
 		try {
-			Key keyMission = KeyFactory.createKey("Mission", "1");
+			Key keyMission = KeyFactory.createKey("Mission", "3");
 			userMission = dds.get(keyMission);
-			assertEquals(
-					"{id=1, title='go to library', ts=0, priority=1, name='Lisa S.', score=100, pid=1}",
-					userMission.getProperties().toString());
+			assertEquals("100", userMission
+					.getProperty("score"));
+			assertEquals("'Homer'",userMission
+					.getProperty("name"));
+			assertEquals("1", userMission
+					.getProperty("priority"));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
