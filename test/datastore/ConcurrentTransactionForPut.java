@@ -90,7 +90,7 @@ public class ConcurrentTransactionForPut {
 			e2.setProperty("name", "Lisa2");
 			e1.setProperty("ts", ts2);
 			ds.put(txn2, e2);
-			txn2.commit();
+			txn2.commit(); // fails - ConcurrentModificationException thrown
 		} catch (ConcurrentModificationException e) {
 			throw e;
 		} finally {

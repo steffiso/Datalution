@@ -5,7 +5,7 @@ import java.util.ArrayList;
 /**
  * This is a class for representing datalog predicates. <br>
  * A datalog rule consists of several predicates. <br>
- * The explanation of predicate is based on this example: A(?x,?y).
+ * An example of a predicate is: A(?x,?y).
  */
 
 public class Predicate {

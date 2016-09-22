@@ -4,8 +4,7 @@ import java.util.ArrayList;
 
 /**
  * This is a class for representing a datalog rule. <br>
- * The Explanation of Rule is based on this example: <br>
- * C(?y):- A(?x,?y),B(?z,?y),?y=2.
+ * An example of a rule is: C(?y):- A(?x,?y),B(?z,?y),?y=2.
  */
 
 public class Rule {

@@ -1,4 +1,4 @@
-"CloudDatalution - A Datalog-based Tool for Schema Evolution in NoSQL Databases", Version 2.0, 09/21/2016
+"CloudDatalution - A Datalog-based Tool for Schema Evolution in NoSQL Databases", Version 2.0, 09/22/2016
 ====================================================================================================
 
 GENERAL USAGE NOTES
@@ -52,6 +52,6 @@ BACKGROUND INFORMATION
 
 CONTACT
 -------------------------------------------------------------------------------------
-Katharina Wiech, katharina1.wiech@st.oth-regensburg.de
+Katharina Wiech, katharina.wiech@web.de
 
 Stephanie Sombach, steffi.sombach@t-online.de

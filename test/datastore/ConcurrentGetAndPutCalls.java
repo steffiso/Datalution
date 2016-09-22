@@ -30,9 +30,22 @@ public class ConcurrentGetAndPutCalls {
 
 	private final LocalServiceTestHelper helper = new LocalServiceTestHelper(new LocalDatastoreServiceTestConfig());
 
+	// Google Datastore Object
+	DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
+	
+	// Datastore Wrapper
+	DatalutionDatastoreService dds = new DatalutionDatastoreService(ds);
+	
 	@Before
 	public void setUp() {
 		helper.setUp();
+
+		// parent key
+		Key parent = KeyFactory.createKey("Player", 1);
+		
+		// example entities for testing
+		putEntities(ds, parent);
+
 	}
 
 	@After
@@ -53,18 +66,6 @@ public class ConcurrentGetAndPutCalls {
 		
 		/*---------------------------------preparation-----------------------------------*/
 		
-		// Google Datastore Object
-		DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-		
-		// parent key
-		Key parent = KeyFactory.createKey("Player", 1);
-		
-		// Datastore Wrapper
-		DatalutionDatastoreService dds = new DatalutionDatastoreService(ds);
-		
-		// example entities for testing
-		putEntities(ds, parent);
-
 		// execute add Command -> generate new schema version "Player2" and datalog rules
 		String addCommand = "add Player.score=200";
 		dds.saveSchemaChange(addCommand);
@@ -91,6 +92,7 @@ public class ConcurrentGetAndPutCalls {
 		// start lazy migration
 		ArrayList<String> resultValues = migration.executeLazyMigration();
 		
+		System.out.println(resultValues.toString());
 		// put was detected in lazy migration!
 		assertEquals("[1, 'Lisa S.', 150, 300, 1]", resultValues.toString());	
 		
