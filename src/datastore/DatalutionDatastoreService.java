@@ -155,11 +155,10 @@ public class DatalutionDatastoreService {
 				if (resultValues != null) {
 					goalEntity = new Entity(kind + schemaversion, id + "0",
 							KeyFactory.createKey(kind, id));
-					for (int i = 0; i < schemaAttributes.size() - 1; i++) {
+					for (int i = 0; i < schemaAttributes.size(); i++) {
 						goalEntity.setProperty(schemaAttributes.get(i)
 								.substring(1), resultValues.get(i));
 					}
-					goalEntity.setProperty("ts", 0);
 				} else
 					throw new EntityNotFoundException(KeyFactory.createKey(
 							kind, id));

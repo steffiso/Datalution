@@ -92,7 +92,6 @@ public class ConcurrentGetAndPutCalls {
 		// start lazy migration
 		ArrayList<String> resultValues = migration.executeLazyMigration();
 		
-		System.out.println(resultValues.toString());
 		// put was detected in lazy migration!
 		assertEquals("[1, 'Lisa S.', 150, 300, 1]", resultValues.toString());	
 		

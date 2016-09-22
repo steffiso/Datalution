@@ -21,7 +21,7 @@ GETTING STARTED
 - Supported commands have the following syntax: e.g.
 	1. In the user console:
 	- get Player.id=1
-	- put Player(4,"Maggie", 100)
+	- put Player(4,"Maggie", 100) - (only integer values for id accepted)
 	2. In the admin console:
 	- add Player.points = 100 or add Player.home="Springfield"
 	- delete Player.points

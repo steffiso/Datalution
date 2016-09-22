@@ -242,7 +242,7 @@ final public String add() throws ParseException, InputMismatchException, IOExcep
     ArrayList < String > newSchema = getNewSchemaAdd(kind, "?" + propertyName);
     int currentSchemaVersion = currentSchemaFrom.getVersion();
     int newSchemaVersion = currentSchemaVersion + 1;
-    String headRules = kind + newSchemaVersion + "(" + schemaToString(getNewSchemaAdd(kind, propertyValue)) + ",?ts):-$"
+    String headRules = kind + newSchemaVersion + "(" + schemaToString(getNewSchemaAdd(kind, propertyValue)) + ",0):-$"
     + kind + currentSchemaVersion + "(" + schemaToString(currentSchema) + ",?ts).\u005cn";
     saveCurrentSchema(kind, newSchema);
     {if (true) return headRules;}
@@ -271,7 +271,7 @@ final public String delete() throws ParseException, InputMismatchException, IOEx
     ArrayList < String > newSchema = getNewSchemaDelete(kind, propertyName);
     int currentVersion = currentSchemaFrom.getVersion();
     int newVersion = currentVersion + 1;
-    String headRules = kind + newVersion + "(" + schemaToString(newSchema) + ",?ts):-$"
+    String headRules = kind + newVersion + "(" + schemaToString(newSchema) + ",0):-$"
     + kind + currentVersion + "(" + schemaToString(currentSchemaFrom.getAttributesAsList()) + ",?ts).\u005cn";
     saveCurrentSchema(kind, newSchema);
     {if (true) return headRules;}
@@ -360,14 +360,14 @@ final public String copy() throws ParseException, InputMismatchException, IOExce
     ArrayList < String > schemaTo = addAttributeNr(currentSchemaTo.getAttributesAsList(), 1, "");
     ArrayList < String > schemaFrom = addAttributeNr(currentSchemaFrom.getAttributesAsList(), 2, "");
     String condition = "?" + conditionFrom + "2 = " + "?" + conditionTo + "1";
-    String headRules = kindTo + newSchemaVersionTo + "(" + schemaToString(schemaToNew) + ",?ts1):-$"
+    String headRules = kindTo + newSchemaVersionTo + "(" + schemaToString(schemaToNew) + ",0):-$"
     + kindTo + currentSchemaVersionTo + "(" + schemaToString(schemaTo) + ",?ts1),$"
     + kindFrom + currentSchemaVersionFrom + "(" + schemaToString(schemaFrom) + ",?ts2)," + condition + ".\u005cn";
-    headRules = headRules + kindTo + newSchemaVersionTo + "(" + schemaToString(schemaToNew2) + ",?ts1):-$"
+    headRules = headRules + kindTo + newSchemaVersionTo + "(" + schemaToString(schemaToNew2) + ",0):-$"
     + kindTo + currentSchemaVersionTo + "(" + schemaToString(schemaTo) + ",?ts1)," +
     " not $" + kindFrom + currentSchemaVersionFrom + "(" + schemaToString(schemaFrom) + ",?ts2)," + condition + ".\u005cn";
-    headRules = headRules + kindFrom + newSchemaVersionFrom + "(" + schemaToString(schemaFrom) + ",?ts2):-$"
-    + kindFrom + currentSchemaVersionFrom + "(" + schemaToString(schemaFrom) + ",?ts2).\u005cn";
+    headRules = headRules + kindFrom + newSchemaVersionFrom + "(" + schemaToString(schemaFrom) + ",0):-$"
+    + kindFrom + currentSchemaVersionFrom + "(" + schemaToString(schemaFrom) + ",?ts).\u005cn";
     {if (true) return headRules;}
     throw new Error("Missing return statement in function");
   }
@@ -458,14 +458,14 @@ final public String move() throws ParseException, InputMismatchException, IOExce
     ArrayList < String > schemaFrom = addAttributeNr(currentSchemaFrom.getAttributesAsList(), 2, "");
     schemaFromNew = addAttributeNr(schemaFromNew, 2, "");
     String condition = "?" + conditionFrom + "2 = " + "?" + conditionTo + "1";
-    String headRules = kindTo + newSchemaVersionTo + "(" + schemaToString(schemaToNew) + ",?ts1):-$"
+    String headRules = kindTo + newSchemaVersionTo + "(" + schemaToString(schemaToNew) + ",0):-$"
     + kindTo + currentSchemaVersionTo + "(" + schemaToString(schemaTo) + ",?ts1),$"
     + kindFrom + currentSchemaVersionFrom + "(" + schemaToString(schemaFrom) + ",?ts2)," + condition + ".\u005cn";
-    headRules = headRules + kindTo + newSchemaVersionTo + "(" + schemaToString(schemaToNew2) + ",?ts1):-$"
+    headRules = headRules + kindTo + newSchemaVersionTo + "(" + schemaToString(schemaToNew2) + ",0):-$"
     + kindTo + currentSchemaVersionTo + "(" + schemaToString(schemaTo) + ",?ts1)," +
     " not $" + kindFrom + currentSchemaVersionFrom + "(" + schemaToString(schemaFrom) + ",?ts2)," + condition + ".\u005cn";
-    headRules = headRules + kindFrom + newSchemaVersionFrom + "(" + schemaToString(schemaFromNew) + ",?ts2):-$"
-    + kindFrom + currentSchemaVersionFrom + "(" + schemaToString(schemaFrom) + ",?ts2).\u005cn";
+    headRules = headRules + kindFrom + newSchemaVersionFrom + "(" + schemaToString(schemaFromNew) + ",0):-$"
+    + kindFrom + currentSchemaVersionFrom + "(" + schemaToString(schemaFrom) + ",?ts).\u005cn";
     {if (true) return headRules;}
     throw new Error("Missing return statement in function");
   }
