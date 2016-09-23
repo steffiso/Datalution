@@ -5,4 +5,3 @@ parserGetToDatalog
 parserPutToDatalog
 parserQueryToDatalog
 parserRuletoJava
-queryTests
