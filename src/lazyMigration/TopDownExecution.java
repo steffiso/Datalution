@@ -47,8 +47,6 @@ public class TopDownExecution extends MigrationExecution {
 	/**
 	 * Constructor: set edb facts, rules, goal and unificationMap
 	 * 
-	 * @param txn
-	 *            transaction for datastore operations
 	 * @param facts
 	 *            edb facts
 	 * @param rules

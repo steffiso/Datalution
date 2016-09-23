@@ -6,4 +6,3 @@ parserPutToDatalog
 parserQueryToDatalog
 parserRuletoJava
 queryTests
-usecases
