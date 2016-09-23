@@ -109,7 +109,7 @@ public class DatalutionDatastoreService {
 	 * Get an entity from Datastore with current kind and id (lazy migration
 	 * with Datalog will be started if necessary)
 	 * 
-	 * @param key             
+	 * @param key
 	 *            Key of needed entity (e.g. Player)
 	 * @return latest entity (even after lazy migration)
 	 */
@@ -136,15 +136,13 @@ public class DatalutionDatastoreService {
 						.getAttributesAsList();
 				schemaAttributes.add("?ts");
 
-				Predicate goal = new Predicate(
-						"get" + kind + schemaversion,
+				Predicate goal = new Predicate("get" + kind + schemaversion,
 						schemaAttributes.size(), schemaAttributes);
 
 				// execute lazy migration
-				LazyMigration migrate = new LazyMigration(
-						datalogRules, goal, uniMap);
-				ArrayList<String> resultValues = migrate
-						.executeLazyMigration();
+				LazyMigration migrate = new LazyMigration(datalogRules, goal,
+						uniMap);
+				ArrayList<String> resultValues = migrate.executeLazyMigration();
 
 				// in the next step the result entity will be taken from the
 				// answer
@@ -163,22 +161,22 @@ public class DatalutionDatastoreService {
 					throw new EntityNotFoundException(KeyFactory.createKey(
 							kind, id));
 			}
-			 
-			} catch (InputMismatchException e) {
-				log.warning("InputMismatchException:" + e.getMessage());
-			} catch (parserRuletoJava.ParseException e) {
-				log.warning("ParseExceptionRuleToJava:" + e.getMessage());
-			} catch (parserGetToDatalog.ParseException e) {
-				log.warning("ParseExceptionGetToDatalog:" + e.getMessage());
-			} catch (IOException e) {
-				log.warning("IOException:" + e.getMessage());
-			} catch (ParseException e) {
-				log.warning("ParseException:" + e.getMessage());
-			} catch (URISyntaxException e) {
-				log.warning("URISyntaxException:" + e.getMessage());
-			} 
 
-			return goalEntity;		
+		} catch (InputMismatchException e) {
+			log.warning("InputMismatchException:" + e.getMessage());
+		} catch (parserRuletoJava.ParseException e) {
+			log.warning("ParseExceptionRuleToJava:" + e.getMessage());
+		} catch (parserGetToDatalog.ParseException e) {
+			log.warning("ParseExceptionGetToDatalog:" + e.getMessage());
+		} catch (IOException e) {
+			log.warning("IOException:" + e.getMessage());
+		} catch (ParseException e) {
+			log.warning("ParseException:" + e.getMessage());
+		} catch (URISyntaxException e) {
+			log.warning("URISyntaxException:" + e.getMessage());
+		}
+
+		return goalEntity;
 	}
 
 	/**
@@ -190,8 +188,8 @@ public class DatalutionDatastoreService {
 	 *            Id of needed entity (e.g. 1)
 	 * @return list of unification maps
 	 */
-	protected static Map<String, String> prepareUniMapForLazyMigration(String kind,
-			String id) {
+	protected static Map<String, String> prepareUniMapForLazyMigration(
+			String kind, String id) {
 		Map<String, String> uniMap = new TreeMap<String, String>();
 		uniMap.put("kind", kind);
 		uniMap.put("position", "0");
@@ -209,10 +207,10 @@ public class DatalutionDatastoreService {
 	 *            Id of needed entity (e.g. 1)
 	 * @return list of Datalog rules
 	 */
-	protected ArrayList<Rule> prepareRulesForLazyMigration(String kind, String id)
-			throws parserRuletoJava.ParseException, InputMismatchException,
-			parserGetToDatalog.ParseException, IOException,
-			EntityNotFoundException {
+	protected ArrayList<Rule> prepareRulesForLazyMigration(String kind,
+			String id) throws parserRuletoJava.ParseException,
+			InputMismatchException, parserGetToDatalog.ParseException,
+			IOException, EntityNotFoundException {
 
 		ArrayList<Rule> datalogRules = new ArrayList<Rule>();
 
@@ -238,11 +236,11 @@ public class DatalutionDatastoreService {
 	 * @return generated Datalog rules saved in Datastore
 	 */
 	public String saveSchemaChange(String command)
-			throws InputMismatchException,
-			parserQueryToDatalog.ParseException, IOException,
-			parserRuletoJava.ParseException, EntityNotFoundException {
-		String rulesStr = new ParserQueryToDatalog(new StringReader(
-				command)).getDatalogRules(this);
+			throws InputMismatchException, parserQueryToDatalog.ParseException,
+			IOException, parserRuletoJava.ParseException,
+			EntityNotFoundException {
+		String rulesStr = new ParserQueryToDatalog(new StringReader(command))
+				.getDatalogRules(this);
 
 		if (!rulesStr.equals(EMPTY_STRING)) {
 			HashMap<String, String> rulesMap = new HashMap<String, String>();
@@ -404,7 +402,8 @@ public class DatalutionDatastoreService {
 			throws EntityNotFoundException {
 		Schema schema = null;
 		int version = 0;
-		String kindWithoutVersionNr = kind.replaceAll(MATCH_NUMBERS, EMPTY_STRING);
+		String kindWithoutVersionNr = kind.replaceAll(MATCH_NUMBERS,
+				EMPTY_STRING);
 
 		if (!kindWithoutVersionNr.equals(kind)) {
 			version = Integer.parseInt(kind.replaceAll("[^0-9]", EMPTY_STRING));
@@ -437,10 +436,11 @@ public class DatalutionDatastoreService {
 	 */
 	protected int getLatestTimestamp(Transaction txn, String kind, int id) {
 		int ts = 0;
-		
-		Key parentKey = KeyFactory.createKey(kind.replaceAll(MATCH_NUMBERS, EMPTY_STRING), id);
-		Query kindQuery = new Query(kind).setAncestor(parentKey).addSort(
-				"ts", SortDirection.DESCENDING);
+
+		Key parentKey = KeyFactory.createKey(
+				kind.replaceAll(MATCH_NUMBERS, EMPTY_STRING), id);
+		Query kindQuery = new Query(kind).setAncestor(parentKey).addSort("ts",
+				SortDirection.DESCENDING);
 		List<Entity> latestEntity = ds.prepare(txn, kindQuery).asList(
 				FetchOptions.Builder.withDefaults().limit(1));
 
@@ -453,10 +453,11 @@ public class DatalutionDatastoreService {
 	}
 
 	/**
-	 * Write a datalog fact to Datastore; timestamp will be added automatically
+	 * Write a datalog fact to Datastore; timestamp will be added automatically;
+	 * used for generated entities in lazy migration
 	 * 
 	 * @param datalogFact
-	 *            , e.g. "Player2(4,'Lisa',40)"
+	 *            e.g. "Player2(4,'Lisa',40)"
 	 */
 	public void putToDatabase(String datalogFact)
 			throws InputMismatchException, ParseException,
@@ -464,14 +465,15 @@ public class DatalutionDatastoreService {
 
 		Entity entity = null;
 
+		// parse datalog fact to Entity
 		entity = new ParserForPut(new StringReader(datalogFact)).getEntity();
 
 		if (entity != null) {
 			String kind = entity.getKind();
 			String entityId = entity.getProperty("id") + "0";
-			Key parentKey = KeyFactory.createKey(entity
-					.getKind().replaceAll(MATCH_NUMBERS, EMPTY_STRING), (int) entity
-					.getProperty("id"));
+			Key parentKey = KeyFactory.createKey(
+					entity.getKind().replaceAll(MATCH_NUMBERS, EMPTY_STRING),
+					(int) entity.getProperty("id"));
 			Entity putEntity = new Entity(kind, entityId, parentKey);
 			putEntity.setPropertiesFrom(entity);
 			putEntity.setProperty("ts", (int) 0);
@@ -540,7 +542,7 @@ public class DatalutionDatastoreService {
 		} else
 			saveCurrentSchema(kind, attributes);
 	}
-	
+
 	/**
 	 * This method adds start/test entities to Datastore. Only for test cases -
 	 * three Player and three Mission entities will be added.
