@@ -142,7 +142,8 @@ final public Entity getEntity() throws ParseException, InputMismatchException, E
     throw new Error("Missing return statement in function");
   }
 
-  final public Entity listOfValues(Entity putEntity) throws ParseException {
+  @SuppressWarnings("unused")
+final public Entity listOfValues(Entity putEntity) throws ParseException {
   Token valueOfToken = null;
   Entity valueOfOtherToken = null;
   String valueOne = "";
@@ -202,27 +203,14 @@ final public Entity getEntity() throws ParseException, InputMismatchException, E
       jj_consume_token(17);
       valueOfOtherToken = listOfValues(putEntity);
     }
-    if (valueOfOtherToken != null)
+    if (valueOfOtherToken != null) putEntity = valueOfOtherToken;
+    if (valueOne != "")
     {
-      putEntity = valueOfOtherToken;
-      if (valueOne != "")
-      {
-        if (name != null) putEntity.setProperty(valueOne, name);
-        else if (nullvalue) putEntity.setProperty(valueOne, null);
-        else putEntity.setProperty(valueOne, numbers);
-      }
-      {if (true) return putEntity;}
+      if (name != null) putEntity.setProperty(valueOne, name);
+      else if (nullvalue) putEntity.setProperty(valueOne, null);
+      else putEntity.setProperty(valueOne, numbers);
     }
-    else
-    {
-      if (valueOne != "")
-      {
-        if (name != null) putEntity.setProperty(valueOne, name);
-        else if (nullvalue) putEntity.setProperty(valueOne, null);
-        else putEntity.setProperty(valueOne, numbers);
-        {if (true) return putEntity;}
-      }
-    }
+    {if (true) return putEntity;}
     throw new Error("Missing return statement in function");
   }
 

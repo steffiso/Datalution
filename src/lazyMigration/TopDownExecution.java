@@ -153,6 +153,8 @@ public class TopDownExecution extends MigrationExecution {
 						RuleGoalTree subTree = new RuleGoalTree(
 								unifiedChildrenRules);
 						subgoal.setRelation(getAnswersForSubtree(subTree));
+						// generate magic set if values found
+						if(!subgoal.getRelation().isEmpty())
 						generateMagicSet(subgoal.getRelation(),
 								subgoal.getKind());
 						// add new facts to temp fact list
