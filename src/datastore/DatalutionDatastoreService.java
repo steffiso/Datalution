@@ -50,8 +50,7 @@ public class DatalutionDatastoreService {
 
 	private static final String EMPTY_STRING = "";
 	private static final String MATCH_NUMBERS = "\\d";
-	private static final Logger log = Logger
-			.getLogger(DatalutionDatastoreService.class.getName());
+	private static final Logger log = Logger.getLogger(DatalutionDatastoreService.class.getName());
 
 	private DatastoreService ds;
 
@@ -81,8 +80,7 @@ public class DatalutionDatastoreService {
 			Transaction txn = ds.beginTransaction();
 			try {
 				int newTS = getLatestTimestamp(txn, kind, id) + 1;
-				Key keyParent = KeyFactory.createKey(
-						kind.replaceAll(MATCH_NUMBERS, EMPTY_STRING), id);
+				Key keyParent = KeyFactory.createKey(kind.replaceAll(MATCH_NUMBERS, EMPTY_STRING), id);
 				String entityID = id + Integer.toString(newTS);
 				newEntity = new Entity(kind, entityID, keyParent);
 				newEntity.setPropertiesFrom(entity);
@@ -126,25 +124,20 @@ public class DatalutionDatastoreService {
 			if (goalEntity == null) {
 				// no entity with latest schemaversion found
 				// prepare lazy migration
-				ArrayList<Rule> datalogRules = prepareRulesForLazyMigration(
-						kind, id);
+				ArrayList<Rule> datalogRules = prepareRulesForLazyMigration(kind, id);
 
-				Map<String, String> uniMap = prepareUniMapForLazyMigration(
-						kind, id);
+				Map<String, String> uniMap = prepareUniMapForLazyMigration(kind, id);
 
 				// get list of schema attributes
 				Schema latestSchema = getLatestSchema(kind);
 				int schemaversion = latestSchema.getVersion();
-				ArrayList<String> schemaAttributes = latestSchema
-						.getAttributesAsList();
+				ArrayList<String> schemaAttributes = latestSchema.getAttributesAsList();
 				schemaAttributes.add("?ts");
 
-				Predicate goal = new Predicate("get" + kind + schemaversion,
-						schemaAttributes.size(), schemaAttributes);
+				Predicate goal = new Predicate("get" + kind + schemaversion, schemaAttributes.size(), schemaAttributes);
 
 				// execute lazy migration
-				LazyMigration migrate = new LazyMigration(datalogRules, goal,
-						uniMap);
+				LazyMigration migrate = new LazyMigration(datalogRules, goal, uniMap);
 				ArrayList<String> resultValues = migrate.executeLazyMigration();
 
 				// in the next step the result entity will be taken from the
@@ -154,15 +147,12 @@ public class DatalutionDatastoreService {
 				// performed:
 				// goalEntity = getLatestEntity(kind,Integer.parseInt(id));
 				if (resultValues != null) {
-					goalEntity = new Entity(kind + schemaversion, id + "0",
-							KeyFactory.createKey(kind, id));
+					goalEntity = new Entity(kind + schemaversion, id + "0", KeyFactory.createKey(kind, id));
 					for (int i = 0; i < schemaAttributes.size(); i++) {
-						goalEntity.setProperty(schemaAttributes.get(i)
-								.substring(1), resultValues.get(i));
+						goalEntity.setProperty(schemaAttributes.get(i).substring(1), resultValues.get(i));
 					}
 				} else
-					throw new EntityNotFoundException(KeyFactory.createKey(
-							kind, id));
+					throw new EntityNotFoundException(KeyFactory.createKey(kind, id));
 			}
 
 		} catch (InputMismatchException e) {
@@ -191,8 +181,7 @@ public class DatalutionDatastoreService {
 	 *            Id of needed entity (e.g. 1)
 	 * @return list of unification maps
 	 */
-	protected static Map<String, String> prepareUniMapForLazyMigration(
-			String kind, String id) {
+	protected static Map<String, String> prepareUniMapForLazyMigration(String kind, String id) {
 		Map<String, String> uniMap = new TreeMap<String, String>();
 		uniMap.put("kind", kind);
 		uniMap.put("position", "0");
@@ -210,9 +199,8 @@ public class DatalutionDatastoreService {
 	 *            Id of needed entity (e.g. 1)
 	 * @return list of Datalog rules
 	 */
-	protected ArrayList<Rule> prepareRulesForLazyMigration(String kind,
-			String id) throws parserRuletoJava.ParseException,
-			InputMismatchException, parserGetToDatalog.ParseException,
+	protected ArrayList<Rule> prepareRulesForLazyMigration(String kind, String id)
+			throws parserRuletoJava.ParseException, InputMismatchException, parserGetToDatalog.ParseException,
 			IOException, EntityNotFoundException {
 
 		ArrayList<Rule> datalogRules = new ArrayList<Rule>();
@@ -220,12 +208,10 @@ public class DatalutionDatastoreService {
 		// load saved rules from Datastore
 		ArrayList<String> rulesFromDatastore = getAllRulesFromDatastore();
 		for (String rule : rulesFromDatastore)
-			datalogRules.addAll(new ParserRuleToJava(new StringReader(rule))
-					.parseHeadRules());
+			datalogRules.addAll(new ParserRuleToJava(new StringReader(rule)).parseHeadRules());
 
 		// generate additional rule for get command
-		datalogRules.addAll(new ParserForGet(new StringReader("get " + kind
-				+ ".id=" + id)).getJavaRules(this));
+		datalogRules.addAll(new ParserForGet(new StringReader("get " + kind + ".id=" + id)).getJavaRules(this));
 
 		return datalogRules;
 	}
@@ -238,17 +224,13 @@ public class DatalutionDatastoreService {
 	 *            Command which triggers a schema change
 	 * @return generated Datalog rules saved in Datastore
 	 */
-	public String saveSchemaChange(String command)
-			throws InputMismatchException, parserQueryToDatalog.ParseException,
-			IOException, parserRuletoJava.ParseException,
-			EntityNotFoundException {
-		String rulesStr = new ParserQueryToDatalog(new StringReader(command))
-				.getDatalogRules(this);
+	public String saveSchemaChange(String command) throws InputMismatchException, parserQueryToDatalog.ParseException,
+			IOException, parserRuletoJava.ParseException, EntityNotFoundException {
+		String rulesStr = new ParserQueryToDatalog(new StringReader(command)).getDatalogRules(this);
 
 		if (!rulesStr.equals(EMPTY_STRING)) {
 			HashMap<String, String> rulesMap = new HashMap<String, String>();
-			List<String> rulesSplit = new ArrayList<String>(
-					Arrays.asList(rulesStr.split("\n")));
+			List<String> rulesSplit = new ArrayList<String>(Arrays.asList(rulesStr.split("\n")));
 			for (String rule : rulesSplit) {
 				String head = rule.substring(0, rule.indexOf("("));
 				// generate a hash map with Key for Datastore rule entities
@@ -281,8 +263,7 @@ public class DatalutionDatastoreService {
 			ArrayList<String> rulesList = new ArrayList<String>();
 
 			if (!rules.equals(EMPTY_STRING)) {
-				rulesList = new ArrayList<String>(Arrays.asList(rules
-						.split("\n")));
+				rulesList = new ArrayList<String>(Arrays.asList(rules.split("\n")));
 			}
 
 			return rulesList;
@@ -294,8 +275,8 @@ public class DatalutionDatastoreService {
 	 * Add rules from inputMap to datastore and memcache
 	 * 
 	 * @param newRules
-	 *            as a Map<String,String> (e.g. key="RulesPlayer2",
-	 *            value="Player2(?id,?name,?score,?ts):-$Player1(?id,?name,?ts)."
+	 *            as a Map<String,String> (e.g. key="RulesPlayer2", value=
+	 *            "Player2(?id,?name,?score,?ts):-$Player1(?id,?name,?ts)."
 	 */
 	private void addRulesToDatastore(Map<String, String> newRules) {
 		MemcacheService syncCache = MemcacheServiceFactory.getMemcacheService();
@@ -304,8 +285,7 @@ public class DatalutionDatastoreService {
 			String rulesKey = entry.getKey();
 			String rulesValue = entry.getValue();
 
-			Entity ruleEntity = new Entity(rulesKey, KeyFactory.createKey(
-					"Rules", 1));
+			Entity ruleEntity = new Entity(rulesKey, KeyFactory.createKey("Rules", 1));
 			ruleEntity.setProperty("value", rulesValue);
 			ds.put(ruleEntity);
 
@@ -324,10 +304,8 @@ public class DatalutionDatastoreService {
 	 * @param version
 	 * @return Schema from Datastore
 	 */
-	public Schema getSchema(String kind, int version)
-			throws EntityNotFoundException {
-		Key schemaKey = KeyFactory.createKey(
-				KeyFactory.createKey("Schema", kind), "Schema" + kind, version);
+	public Schema getSchema(String kind, int version) throws EntityNotFoundException {
+		Key schemaKey = KeyFactory.createKey(KeyFactory.createKey("Schema", kind), "Schema" + kind, version);
 
 		Entity resultEntity = ds.get(schemaKey);
 
@@ -335,10 +313,8 @@ public class DatalutionDatastoreService {
 			Schema schema = new Schema();
 			schema.setAttributes(resultEntity.getProperty("value").toString());
 			schema.setKind(resultEntity.getProperty("kind").toString());
-			schema.setVersion(Integer.parseInt(resultEntity.getProperty(
-					"version").toString()));
-			schema.setTimestamp(Integer.parseInt(resultEntity.getProperty("ts")
-					.toString()));
+			schema.setVersion(Integer.parseInt(resultEntity.getProperty("version").toString()));
+			schema.setTimestamp(Integer.parseInt(resultEntity.getProperty("ts").toString()));
 			return schema;
 		} else
 			return null;
@@ -351,8 +327,7 @@ public class DatalutionDatastoreService {
 	 *            of entity (e.g. Player)
 	 * @return latest schema version for specific kind
 	 */
-	public int getLatestSchemaVersion(String kind)
-			throws EntityNotFoundException {
+	public int getLatestSchemaVersion(String kind) throws EntityNotFoundException {
 		Schema latestSchema = getLatestSchema(kind);
 		int latestSchemaVersion = 0;
 		if (latestSchema != null) {
@@ -416,21 +391,21 @@ public class DatalutionDatastoreService {
 		Key parentKey = KeyFactory.createKey(kindWithoutVersionNr, id);
 
 		String kindForQuery = kindWithoutVersionNr + Integer.toString(version);
-		
-		Query queryLatestEntity = new Query(kindForQuery).setAncestor(parentKey)
-				.addSort("ts", SortDirection.DESCENDING);
-		
-		List<Entity> latestEntity;
-		
+
+		List<Entity> latestEntity = null;
+		// log.warning("Log funktioniert");
 		try {
+			Query queryLatestEntity = new Query(kindForQuery).setAncestor(parentKey).addSort("ts",
+					SortDirection.DESCENDING);
 			// query latest Entity within kind and entity group
 			latestEntity = ds.prepare(queryLatestEntity).asList(FetchOptions.Builder.withDefaults().limit(1));
-			
+
 		} catch (DatastoreNeedIndexException e) {
 			// no index -> get latest Entity after manual sort operation
 			latestEntity = getLatestEntityManual(kindForQuery, parentKey);
+			// log.warning("Catch DatastoreNeedIndexException!" + e.getMessage());
 		}
-		
+
 		if (latestEntity.isEmpty())
 			return null;
 		else
@@ -438,8 +413,8 @@ public class DatalutionDatastoreService {
 	}
 
 	/**
-	 * Returns the latest entity saved in Datastore after manual sort operation
-	 * for specific kind and parentKey
+	 * Returns latest entity saved in Datastore after manual sort operation for
+	 * specific kind and parentKey
 	 * 
 	 * @param kind
 	 *            of entity (e.g. Player)
@@ -471,7 +446,6 @@ public class DatalutionDatastoreService {
 		return latestEntity;
 	}
 
-
 	/**
 	 * Get highest timestamp inside a specific transaction
 	 * 
@@ -483,13 +457,16 @@ public class DatalutionDatastoreService {
 	protected int getLatestTimestamp(Transaction txn, String kind, int id) {
 		int ts = 0;
 
-		Key parentKey = KeyFactory.createKey(
-				kind.replaceAll(MATCH_NUMBERS, EMPTY_STRING), id);
-		Query kindQuery = new Query(kind).setAncestor(parentKey).addSort("ts",
-				SortDirection.DESCENDING);
-		List<Entity> latestEntity = ds.prepare(txn, kindQuery).asList(
-				FetchOptions.Builder.withDefaults().limit(1));
+		Key parentKey = KeyFactory.createKey(kind.replaceAll(MATCH_NUMBERS, EMPTY_STRING), id);
+		List<Entity> latestEntity;
+		try {
+			Query kindQuery = new Query(kind).setAncestor(parentKey).addSort("ts", SortDirection.DESCENDING);
+			latestEntity = ds.prepare(txn, kindQuery).asList(FetchOptions.Builder.withDefaults().limit(1));
 
+		} catch (DatastoreNeedIndexException e) {
+			// no index -> get latest Entity after manual sort operation
+			latestEntity = getLatestEntityManual(kind, parentKey);
+		}
 		if (latestEntity.isEmpty())
 			return 0;
 		else {
@@ -506,8 +483,7 @@ public class DatalutionDatastoreService {
 	 *            e.g. "Player2(4,'Lisa',40)"
 	 */
 	public void putToDatabase(String datalogFact)
-			throws InputMismatchException, ParseException,
-			EntityNotFoundException {
+			throws InputMismatchException, ParseException, EntityNotFoundException {
 
 		Entity entity = null;
 
@@ -517,8 +493,7 @@ public class DatalutionDatastoreService {
 		if (entity != null) {
 			String kind = entity.getKind();
 			String entityId = entity.getProperty("id") + "0";
-			Key parentKey = KeyFactory.createKey(
-					entity.getKind().replaceAll(MATCH_NUMBERS, EMPTY_STRING),
+			Key parentKey = KeyFactory.createKey(entity.getKind().replaceAll(MATCH_NUMBERS, EMPTY_STRING),
 					(int) entity.getProperty("id"));
 			Entity putEntity = new Entity(kind, entityId, parentKey);
 			putEntity.setPropertiesFrom(entity);
@@ -536,8 +511,7 @@ public class DatalutionDatastoreService {
 	 *            list of attribute names (with prefix "?")
 	 * @throws EntityNotFoundException
 	 */
-	public void saveCurrentSchema(String kind,
-			ArrayList<String> newAttributesList) {
+	public void saveCurrentSchema(String kind, ArrayList<String> newAttributesList) {
 		String newAttributes = EMPTY_STRING;
 
 		for (String s : newAttributesList) {
@@ -562,8 +536,7 @@ public class DatalutionDatastoreService {
 			newTimestamp = 1;
 		} else
 			newTimestamp = latestSchema.getTimestamp() + 1;
-		Entity putSchema = new Entity("Schema" + kind, newVersion,
-				KeyFactory.createKey("Schema", kind));
+		Entity putSchema = new Entity("Schema" + kind, newVersion, KeyFactory.createKey("Schema", kind));
 		putSchema.setProperty("kind", kind);
 		putSchema.setProperty("version", newVersion);
 		putSchema.setProperty("value", newAttributes);
@@ -578,13 +551,11 @@ public class DatalutionDatastoreService {
 	 * @param kind
 	 *            New entity type
 	 */
-	public void addNewEntity(String kind) throws EntityNotFoundException,
-			InputMismatchException {
+	public void addNewEntity(String kind) throws EntityNotFoundException, InputMismatchException {
 		ArrayList<String> attributes = new ArrayList<String>();
 		attributes.add("?id");
 		if (!kind.replaceAll(MATCH_NUMBERS, EMPTY_STRING).equals(kind)) {
-			throw new InputMismatchException(
-					"Invalid kind name! (numbers are not allowed)");
+			throw new InputMismatchException("Invalid kind name! (numbers are not allowed)");
 		} else
 			saveCurrentSchema(kind, attributes);
 	}
@@ -594,64 +565,55 @@ public class DatalutionDatastoreService {
 	 * three Player and three Mission entities will be added.
 	 */
 	public void addStartEntities() {
-		Entity schemaPlayer1 = new Entity("SchemaPlayer", 1,
-				KeyFactory.createKey("Schema", "Player"));
+		Entity schemaPlayer1 = new Entity("SchemaPlayer", 1, KeyFactory.createKey("Schema", "Player"));
 		schemaPlayer1.setProperty("value", "?id,?name,?points");
 		schemaPlayer1.setProperty("kind", "Player");
 		schemaPlayer1.setProperty("version", 1);
 		schemaPlayer1.setProperty("ts", 1);
 
-		Entity schemaMission1 = new Entity("SchemaMission", 1,
-				KeyFactory.createKey("Schema", "Mission"));
+		Entity schemaMission1 = new Entity("SchemaMission", 1, KeyFactory.createKey("Schema", "Mission"));
 		schemaMission1.setProperty("value", "?id,?title,?pid");
 		schemaMission1.setProperty("kind", "Mission");
 		schemaMission1.setProperty("version", 1);
 		schemaMission1.setProperty("ts", 1);
 
-		Entity player1 = new Entity("Player1", "11", KeyFactory.createKey(
-				"Player", 1));
+		Entity player1 = new Entity("Player1", "11", KeyFactory.createKey("Player", 1));
 		player1.setProperty("id", 1);
 		player1.setProperty("name", "Lisa");
 		player1.setProperty("points", 150);
 		player1.setProperty("ts", 1);
 
-		Entity player2 = new Entity("Player1", "12", KeyFactory.createKey(
-				"Player", 1));
+		Entity player2 = new Entity("Player1", "12", KeyFactory.createKey("Player", 1));
 		player2.setProperty("id", 1);
 		player2.setProperty("name", "Lisa S.");
 		player2.setProperty("points", 150);
 		player2.setProperty("ts", 2);
 
-		Entity player3 = new Entity("Player1", "21", KeyFactory.createKey(
-				"Player", 2));
+		Entity player3 = new Entity("Player1", "21", KeyFactory.createKey("Player", 2));
 		player3.setProperty("id", 2);
 		player3.setProperty("name", "Bart");
 		player3.setProperty("points", 100);
 		player3.setProperty("ts", 1);
 
-		Entity player4 = new Entity("Player1", "31", KeyFactory.createKey(
-				"Player", 3));
+		Entity player4 = new Entity("Player1", "31", KeyFactory.createKey("Player", 3));
 		player4.setProperty("id", 3);
 		player4.setProperty("name", "Homer");
 		player4.setProperty("points", 100);
 		player4.setProperty("ts", 1);
 
-		Entity mission1 = new Entity("Mission1", "11", KeyFactory.createKey(
-				"Mission", 1));
+		Entity mission1 = new Entity("Mission1", "11", KeyFactory.createKey("Mission", 1));
 		mission1.setProperty("id", 1);
 		mission1.setProperty("title", "go to library");
 		mission1.setProperty("pid", 1);
 		mission1.setProperty("ts", 1);
 
-		Entity mission2 = new Entity("Mission1", "21", KeyFactory.createKey(
-				"Mission", 2));
+		Entity mission2 = new Entity("Mission1", "21", KeyFactory.createKey("Mission", 2));
 		mission2.setProperty("id", 2);
 		mission2.setProperty("title", "go to work");
 		mission2.setProperty("pid", 20);
 		mission2.setProperty("ts", 1);
 
-		Entity mission3 = new Entity("Mission1", "31", KeyFactory.createKey(
-				"Mission", 3));
+		Entity mission3 = new Entity("Mission1", "31", KeyFactory.createKey("Mission", 3));
 		mission3.setProperty("id", 3);
 		mission3.setProperty("title", "visit Moe");
 		mission3.setProperty("pid", 3);
