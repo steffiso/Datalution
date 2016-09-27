@@ -5,6 +5,8 @@ import java.io.StringReader;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.InputMismatchException;
@@ -13,6 +15,7 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.logging.Logger;
 
+import com.google.appengine.api.datastore.DatastoreNeedIndexException;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
@@ -368,42 +371,39 @@ public class DatalutionDatastoreService {
 	 */
 	public Schema getLatestSchema(String kind) throws EntityNotFoundException {
 		Schema latestSchema = new Schema();
-
-		Query q = new Query("Schema" + kind).setAncestor(
-				KeyFactory.createKey("Schema", kind)).addSort("ts",
-				SortDirection.DESCENDING);
-		List<Entity> schema = ds.prepare(q).asList(
-				FetchOptions.Builder.withDefaults().limit(1));
-
+		Key parentKey = KeyFactory.createKey("Schema", kind);
+		List<Entity> schema;
+		try {
+			Query q = new Query("Schema" + kind).setAncestor(parentKey).addSort("ts", SortDirection.DESCENDING);
+			schema = ds.prepare(q).asList(FetchOptions.Builder.withDefaults().limit(1));
+		} catch (DatastoreNeedIndexException e) {
+			// no index -> get latest Entity after manual sort operation
+			schema = getLatestEntityManual("Schema" + kind, parentKey);
+		}
 		if (schema.isEmpty()) {
-			throw new EntityNotFoundException(KeyFactory.createKey("Schema",
-					kind));
+			throw new EntityNotFoundException(parentKey);
 		} else {
-			latestSchema.setAttributes(schema.get(0).getProperty("value")
-					.toString());
+			latestSchema.setAttributes(schema.get(0).getProperty("value").toString());
 			latestSchema.setKind(schema.get(0).getProperty("kind").toString());
-			latestSchema.setVersion(Integer.parseInt(schema.get(0)
-					.getProperty("version").toString()));
-			latestSchema.setTimestamp(Integer.parseInt(schema.get(0)
-					.getProperty("ts").toString()));
+			latestSchema.setVersion(Integer.parseInt(schema.get(0).getProperty("version").toString()));
+			latestSchema.setTimestamp(Integer.parseInt(schema.get(0).getProperty("ts").toString()));
 			return latestSchema;
 		}
 	}
 
 	/**
-	 * Returns the latest entitiy saved in Datastore for specific kind and id
+	 * Returns the latest entity saved in Datastore for specific kind and id
 	 * 
 	 * @param kind
 	 *            of entity (e.g. Player)
 	 * @param id
+	 *            id property of entity
 	 * @return latest entity of specific kind with specific id
 	 */
-	public Entity getLatestEntity(String kind, int id)
-			throws EntityNotFoundException {
+	public Entity getLatestEntity(String kind, int id) throws EntityNotFoundException {
 		Schema schema = null;
 		int version = 0;
-		String kindWithoutVersionNr = kind.replaceAll(MATCH_NUMBERS,
-				EMPTY_STRING);
+		String kindWithoutVersionNr = kind.replaceAll(MATCH_NUMBERS, EMPTY_STRING);
 
 		if (!kindWithoutVersionNr.equals(kind)) {
 			version = Integer.parseInt(kind.replaceAll("[^0-9]", EMPTY_STRING));
@@ -413,18 +413,64 @@ public class DatalutionDatastoreService {
 			version = schema.getVersion();
 		}
 
-		Query kindQuery = new Query(kindWithoutVersionNr
-				+ Integer.toString(version)).setAncestor(
-				KeyFactory.createKey(kindWithoutVersionNr, id)).addSort("ts",
-				SortDirection.DESCENDING);
-		List<Entity> latestEntity = ds.prepare(kindQuery).asList(
-				FetchOptions.Builder.withDefaults().limit(1));
+		Key parentKey = KeyFactory.createKey(kindWithoutVersionNr, id);
 
+		String kindForQuery = kindWithoutVersionNr + Integer.toString(version);
+		
+		Query queryLatestEntity = new Query(kindForQuery).setAncestor(parentKey)
+				.addSort("ts", SortDirection.DESCENDING);
+		
+		List<Entity> latestEntity;
+		
+		try {
+			// query latest Entity within kind and entity group
+			latestEntity = ds.prepare(queryLatestEntity).asList(FetchOptions.Builder.withDefaults().limit(1));
+			
+		} catch (DatastoreNeedIndexException e) {
+			// no index -> get latest Entity after manual sort operation
+			latestEntity = getLatestEntityManual(kindForQuery, parentKey);
+		}
+		
 		if (latestEntity.isEmpty())
 			return null;
 		else
 			return latestEntity.get(0);
 	}
+
+	/**
+	 * Returns the latest entity saved in Datastore after manual sort operation
+	 * for specific kind and parentKey
+	 * 
+	 * @param kind
+	 *            of entity (e.g. Player)
+	 * @param parentKey
+	 *            key of parent
+	 * @return latest entity of specific kind in entity group
+	 */
+	private List<Entity> getLatestEntityManual(String kind, Key parentKey) {
+
+		Query queryEntitiesWithinEntityGroup = new Query(kind).setAncestor(parentKey);
+
+		// query all entities within kind and entity group
+		List<Entity> latestEntity = ds.prepare(queryEntitiesWithinEntityGroup)
+				.asList(FetchOptions.Builder.withDefaults());
+
+		// find entity with highest ts!
+		Collections.sort(latestEntity, new Comparator<Entity>() {
+			@Override
+			public int compare(Entity entity1, Entity entity2) {
+				int ts1 = Integer.parseInt(entity1.getProperty("ts").toString());
+				int ts2 = Integer.parseInt(entity1.getProperty("ts").toString());
+				if (ts1 < ts2)
+					return 1;
+				if (ts1 > ts2)
+					return -1;
+				return 0;
+			}
+		});
+		return latestEntity;
+	}
+
 
 	/**
 	 * Get highest timestamp inside a specific transaction
